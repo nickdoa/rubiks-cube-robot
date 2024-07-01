@@ -1,0 +1,21 @@
+// cube piece class
+
+// instance variables
+/*
+	use 3 int numbers to identify the piece
+	
+	int x
+	int y
+	int z
+
+	like a 3d vector
+
+	tells u where this piece is supposed to be located in the 3d array
+*/
+
+// override equals() method for comparison of a piece
+
+// @param Piece other
+/*
+	return if this x, y, z equals other x, y, z
+*/

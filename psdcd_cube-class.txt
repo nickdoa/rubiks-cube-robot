@@ -1,0 +1,57 @@
+// cube class
+
+/*
+
+	0,0,0		YELLOW	
+
+	BLUE		RED		GREEN		ORANGE
+
+			WHITE		2,2,2
+	  [x] 0 1 2
+	[z] 
+	 0
+	  1
+	   2
+	    [y]
+	     0
+   	     1
+   	     2
+
+*/
+
+
+// instance variables
+/*
+    3d array of Cube pieces // this array will be used for solving, on instance will be equivalent to the solved cube
+    3d array of solved cube pieces // used to compare the solving cube with
+	
+*/
+
+// constructor
+/*
+	// legit just create a 3d array of cube pieces with the cube pieces being instantiated with the indicies it's in
+	// same process for the solved one
+
+	loop 3 times : index x
+
+		create a reference to a 2d array of cube pieces		
+
+		loop 3 times : index y
+
+			create a reference to an array of cube pieces
+
+			loop 3 times : index z
+				create cube piece according to above indexes
+				add to the array of cube pieces
+
+			add to the 2d array
+
+		add to the class 3d array
+
+	end of loop
+
+	do an array.copy or smth for the other cube 3d array
+*/
+
+// turn()
+/* @param boolean clockwise, 
