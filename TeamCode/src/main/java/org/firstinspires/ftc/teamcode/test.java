@@ -9,8 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-// hi
-
 @TeleOp(name="test", group="Linear Opmode")
 public class test extends LinearOpMode {
 
