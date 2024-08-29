@@ -15,6 +15,8 @@ public class ColorReaderTest extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     ColorSensor colorSensor;
+    int hue;
+    String currentColor;
     /*
     private DcMotor oneDrive = null;
     private DcMotor twoDrive = null;
@@ -31,19 +33,7 @@ public class ColorReaderTest extends LinearOpMode {
     private double stepStartTime = 0;
     */
 
-    private int hue = 0;
-    private String currentColor = "";
 
-    private String[][] cube = {
-            {"R","R","R","R","R","R","R","R","R"},
-            {"O","O","O","O","O","O","O","O","O"},
-            {"W","W","W","W","W","W","W","W","W"},
-            {"Y","Y","Y","Y","Y","Y","Y","Y","Y"},
-            {"G","G","G","G","G","G","G","G","G"},
-            {"B","B","B","B","B","B","B","B","B"},
-
-
-    };
 
     private int cubePos = 0;
     private int cubeFace = 0;
@@ -70,10 +60,6 @@ public class ColorReaderTest extends LinearOpMode {
             {
                 case "red":
                 {
-                    if(cubePos == 0)
-                    {
-                        cubeFace = 0;
-                    }
                     break;
                 } // end step 10
 
@@ -117,8 +103,6 @@ public class ColorReaderTest extends LinearOpMode {
             telemetry.addData("Current Color ", currentColor);
             telemetry.addData("color", hue);
             telemetry.update();
-            //sleep(1000);
-            //cubePos++;
         }
     }
 
@@ -152,11 +136,4 @@ public class ColorReaderTest extends LinearOpMode {
             cubeFace = face;
         }
     }
-
-    /*
-    private void motorPowers(float motor1,float motor2, float motor3, float motor4){
-        oneDrive.setPower();
-    }
-
-     */
 }

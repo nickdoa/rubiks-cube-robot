@@ -35,6 +35,17 @@ public class StateMachTestBed extends LinearOpMode {
     private int hue = 0;
     private String currentColor = "";
 
+    private String[][] cube = {
+            {"R","R","R","R","R","R","R","R","R"},
+            {"O","O","O","O","O","O","O","O","O"},
+            {"W","W","W","W","W","W","W","W","W"},
+            {"Y","Y","Y","Y","Y","Y","Y","Y","Y"},
+            {"G","G","G","G","G","G","G","G","G"},
+            {"B","B","B","B","B","B","B","B","B"},
+
+
+    };
+
     @Override
     public void runOpMode() {
 
