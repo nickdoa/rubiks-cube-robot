@@ -18,10 +18,10 @@ public class ServoTest extends LinearOpMode {
             if(servo.getPosition() == 1){
                 servo.setPosition(-1);
             }
-
-            if(servo.getPosition() == -1){
+            else{
                 servo.setPosition(1);
             }
+            sleep(500);
             telemetry.addData("Servo Pos", servo.getPosition());
         }
     }
