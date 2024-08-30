@@ -28,7 +28,6 @@ public class test extends LinearOpMode {
         threeDrive  = hardwareMap.get(DcMotor.class, "three_Drive");
         fourDrive = hardwareMap.get(DcMotor.class, "four_Drive");
 
-
         waitForStart();
         runtime.reset();
 
