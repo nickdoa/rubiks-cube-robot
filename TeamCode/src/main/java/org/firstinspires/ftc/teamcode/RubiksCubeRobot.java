@@ -10,10 +10,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+@TeleOp(name="RubiksCubeRobot", group="Linear Opmode")
+public class RubiksCubeRobot extends LinearOpMode {
 
-@TeleOp(name="StateMachTestBed", group="Linear Opmode")
-public class StateMachTestBed extends LinearOpMode {
-    // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     ColorSensor colorSensor;
     private DcMotor oneDrive = null;
