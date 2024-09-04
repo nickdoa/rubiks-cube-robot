@@ -26,10 +26,22 @@ public class StateMachTestBed extends LinearOpMode {
     private Servo threeServo = null;
     private Servo fourServo = null;
 
+    private static final int TOP = 0;
+    private static final int BOTTOM = 1;
+    private static final int FRONT = 2;
+    private static final int BACK = 3;
+    private static final int LEFT = 4;
+    private static final int RIGHT = 5;
+
     private int hue = 0;
     private String currentColor = "";
 
-    private char[][] cube = new char[6][9]; // the cube matrix
+    private char[][] cube = new char[6][9]; // the rubik's cube matrix
+    private char[][] copy = new char[6][9];  // copy of the cube
+    private char[] faceColor = { 'R', 'O', 'W', 'Y', 'G', 'B' };  // colors of each face
+    private String[] move = new String[100];  // stores the sequence of moves
+    private int moveNum = 0;  // Counter for the number of moves
+    private int start = 0;  // Starting index for printing moves// the cube matrix
 
     @Override
 
@@ -129,17 +141,67 @@ public class StateMachTestBed extends LinearOpMode {
         }
     }
     // function to rotate a face of the cube
-    private void turnSide(int face, int turn) {
-        // rotate the base to position the correct face
-        rotateBaseToFace(face);
+    private void turnSide(int side, int turn) {
+        int[] adoptA = { 2, 5, 8, 1, 4, 7, 0, 3, 6 };
+        int[][][] adoptB = {
+            { { LEFT, 6, 3, 0 }, { BACK, 6, 3, 0 }, { RIGHT, 6, 3, 0 }, { FRONT, 6, 3, 0 } },   // top
+            { { LEFT, 2, 5, 8 }, { FRONT, 2, 5, 8 }, { RIGHT, 2, 5, 8 }, { BACK, 2, 5, 8 } },   // bottom
+            { { LEFT, 8, 7, 6 }, { TOP, 2, 5, 8 }, { RIGHT, 0, 1, 2 }, { BOTTOM, 6, 3, 0 } },   // front
+            { { RIGHT, 8, 7, 6 }, { TOP, 6, 3, 0 }, { LEFT, 0, 1, 2 }, { BOTTOM, 2, 5, 8 } },   // back
+            { { FRONT, 8, 7, 6 }, { TOP, 8, 7, 6 }, { BACK, 0, 1, 2 }, { BOTTOM, 8, 7, 6 } },   // right
+            { { BACK, 8, 7, 6 }, { TOP, 0, 1, 2 }, { FRONT, 0, 1, 2 }, { BOTTOM, 0, 1, 2 } }    // left
+        };
 
-        // turns using the arm
+        char[][] copy2 = new char[6][9];
+        int faceO, blockO, faceN, blockN;
+
         for (int i = 0; i < turn; i++) {
-            rotateFace();
+            // Create a copy of the cube
+            for (int j = 0; j < 6; j++) {
+                for (int k = 0; k < 9; k++) {
+                    copy2[j][k] = cube[j][k];
+                }
+            }
+
+            // Rotate the primary face
+            for (int j = 0; j < 9; j++) {
+                cube[side][j] = copy2[side][adoptA[j]];
+            }
+
+            // Rotate the secondary faces
+            for (int k = 0; k < 4; k++) {
+                for (int p = 1; p < 4; p++) {
+                    faceN = adoptB[side][k][0];
+                    blockN = adoptB[side][k][p];
+
+                    if (k == 3) {
+                        faceO = adoptB[side][0][0];
+                        blockO = adoptB[side][0][p];
+                    } else {
+                        faceO = adoptB[side][k + 1][0];
+                        blockO = adoptB[side][k + 1][p];
+                    }
+
+                    cube[faceO][blockO] = copy2[faceN][blockN];
+                }
+            }
         }
 
-        // update the cube matrix
-        updateCubeMatrix(face, turn);
+        // Log the move
+        if (turn != 0) {
+            switch (turn) {
+                case 1:
+                    move[moveNum] = String.valueOf(faceColor[side]);
+                    break;
+                case 2:
+                    move[moveNum] = "2" + faceColor[side];
+                    break;
+                case 3:
+                    move[moveNum] = "'" + faceColor[side] + "'";
+                    break;
+            }
+            moveNum++;
+        }
     }
 
     private void rotateBaseToFace(int face) {
@@ -155,6 +217,20 @@ public class StateMachTestBed extends LinearOpMode {
 
     private void updateCubeMatrix(int face, int turn) {
         // logic to update the cube matrix after a face rotation
+    }
+    // update telemetry
+    private void printMoves(String amount) {
+        int i = 0;
+        if (amount.equals("ALL")) {
+            i = 0;
+        } else if (amount.equals("STEP")) {
+            i = start;
+        }
+
+        for (int j = i; j < moveNum; j++) {
+            telemetry.addData("Move", move[j]);
+        }
+        telemetry.update();
     }
 }
 
