@@ -29,6 +29,8 @@ public class StateMachTestBed extends LinearOpMode {
     private int hue = 0;
     private String currentColor = "";
 
+    private char[][] cube = new char[6][9]; // the cube matrix
+
     @Override
 
     public void runOpMode () {
@@ -126,4 +128,34 @@ public class StateMachTestBed extends LinearOpMode {
             return "no color";
         }
     }
+    // function to rotate a face of the cube
+    private void turnSide(int face, int turn) {
+        // rotate the base to position the correct face
+        rotateBaseToFace(face);
+
+        // turns using the arm
+        for (int i = 0; i < turn; i++) {
+            rotateFace();
+        }
+
+        // update the cube matrix
+        updateCubeMatrix(face, turn);
+    }
+
+    private void rotateBaseToFace(int face) {
+        // rotate the robot's base to align with the correct face
+        // use the motors
+    }
+
+    private void rotateFace() {
+        // logic to rotate the face using the Servo(s)
+        // this would be the physical movement to rotate the cube's face
+        oneServo.setPosition(0.5);  // example, adjust for setup
+    }
+
+    private void updateCubeMatrix(int face, int turn) {
+        // logic to update the cube matrix after a face rotation
+    }
 }
+
+
