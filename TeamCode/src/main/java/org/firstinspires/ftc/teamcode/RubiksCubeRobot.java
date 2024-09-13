@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import java.util.ArrayList;
 
 @TeleOp(name="RubiksCubeRobot", group="Linear Opmode")
 public class RubiksCubeRobot extends LinearOpMode {
@@ -25,12 +26,15 @@ public class RubiksCubeRobot extends LinearOpMode {
     private Servo threeServo = null;
     private Servo fourServo = null;
 
-    private static final int TOP = 0;
-    private static final int BOTTOM = 1;
-    private static final int FRONT = 2;
-    private static final int BACK = 3;
-    private static final int LEFT = 4;
-    private static final int RIGHT = 5;
+    private static final int top = 0;
+    private static final int bottom = 1;
+    private static final int front = 2;
+    private static final int back = 3;
+    private static final int right = 4;
+    private static final int left = 5;
+    private static final int all = -2;
+
+    private String[] move_name = {"U", "D", "F", "B", "R", "L"};
 
     private int hue = 0;
     private String currentColor = "";
@@ -39,8 +43,11 @@ public class RubiksCubeRobot extends LinearOpMode {
     private char[][] copy = new char[6][9];  // copy of the cube
     private char[] faceColor = { 'R', 'O', 'W', 'Y', 'G', 'B' };  // colors of each face
     private String[] move = new String[100];  // stores the sequence of moves
-    private int moveNum = 0;  // Counter for the number of moves
-    private int start = 0;  // Starting index for printing moves// the cube matrix
+    private int moveNum = 0;  // counter for the number of moves
+    private int start = 0;  // starting index for printing moves
+
+    private ArrayList<String> moves = new ArrayList<>(); // List of moves
+    private int move_num = 0;
 
     @Override
 
@@ -139,54 +146,64 @@ public class RubiksCubeRobot extends LinearOpMode {
             return "no color";
         }
     }
-    // function to rotate a face of the cube
+
+    /*
+    function to rotate a face of the cube
+    adoption assignment of affected blocks for all four sides after a turn:
+    - each level corresponds to a side.
+    - each level contains four sub-arrays which represent the face and the specific blocks impacted by the turn.
+    */
+
     private void turnSide(int side, int turn) {
-        int[] adoptA = { 2, 5, 8, 1, 4, 7, 0, 3, 6 };
+        int[] adoptA = {2, 5, 8, 1, 4, 7, 0, 3, 6};  // cube rotation mapping
         int[][][] adoptB = {
-            { { LEFT, 6, 3, 0 }, { BACK, 6, 3, 0 }, { RIGHT, 6, 3, 0 }, { FRONT, 6, 3, 0 } },   // top
-            { { LEFT, 2, 5, 8 }, { FRONT, 2, 5, 8 }, { RIGHT, 2, 5, 8 }, { BACK, 2, 5, 8 } },   // bottom
-            { { LEFT, 8, 7, 6 }, { TOP, 2, 5, 8 }, { RIGHT, 0, 1, 2 }, { BOTTOM, 6, 3, 0 } },   // front
-            { { RIGHT, 8, 7, 6 }, { TOP, 6, 3, 0 }, { LEFT, 0, 1, 2 }, { BOTTOM, 2, 5, 8 } },   // back
-            { { FRONT, 8, 7, 6 }, { TOP, 8, 7, 6 }, { BACK, 0, 1, 2 }, { BOTTOM, 8, 7, 6 } },   // right
-            { { BACK, 8, 7, 6 }, { TOP, 0, 1, 2 }, { FRONT, 0, 1, 2 }, { BOTTOM, 0, 1, 2 } }    // left
+                {{left, 6, 3, 0}, {back, 6, 3, 0}, {right, 6, 3, 0}, {front, 6, 3, 0}},  // top
+                {{left, 2, 5, 8}, {front, 2, 5, 8}, {right, 2, 5, 8}, {back, 2, 5, 8}},  // bottom
+                {{left, 8, 7, 6}, {top, 2, 5, 8}, {right, 0, 1, 2}, {bottom, 6, 3, 0}},  // front
+                {{right, 8, 7, 6}, {top, 6, 3, 0}, {left, 0, 1, 2}, {bottom, 2, 5, 8}},  // back
+                {{front, 8, 7, 6}, {top, 8, 7, 6}, {back, 0, 1, 2}, {bottom, 8, 7, 6}},  // right
+                {{back, 8, 7, 6}, {top, 0, 1, 2}, {front, 0, 1, 2}, {bottom, 0, 1, 2}}   // left
         };
 
         char[][] copy2 = new char[6][9];
-        int faceO, blockO, faceN, blockN;
 
-        for (int i = 0; i < turn; i++) {
-            // Create a copy of the cube
-            for (int j = 0; j < 6; j++) {
-                for (int k = 0; k < 9; k++) {
-                    copy2[j][k] = cube[j][k];
-                }
-            }
-
-            // Rotate the primary face
+        // copy the cube's state
+        for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 9; j++) {
-                cube[side][j] = copy2[side][adoptA[j]];
+                copy[i][j] = cube[i][j];
+            }
+        }
+
+        // perform the rotation for the given number of turns
+        for (int i = 0; i < turn; i++) {
+            // rotate the primary face
+            for (int j = 0; j < 9; j++) {
+                cube[side][j] = copy[side][adoptA[j]];
             }
 
-            // Rotate the secondary faces
+            // rotate the affected adjacent faces
             for (int k = 0; k < 4; k++) {
                 for (int p = 1; p < 4; p++) {
-                    faceN = adoptB[side][k][0];
-                    blockN = adoptB[side][k][p];
+                    int faceN = adoptB[side][k][0];
+                    int blockN = adoptB[side][k][p];
+                    int faceO = (k == 3) ? adoptB[side][0][0] : adoptB[side][k + 1][0]; //define the old face
+                    int blockO = (k == 3) ? adoptB[side][0][p] : adoptB[side][k + 1][p]; //define the old block
 
-                    if (k == 3) {
-                        faceO = adoptB[side][0][0];
-                        blockO = adoptB[side][0][p];
-                    } else {
-                        faceO = adoptB[side][k + 1][0];
-                        blockO = adoptB[side][k + 1][p];
-                    }
-
-                    cube[faceO][blockO] = copy2[faceN][blockN];
+                    cube[faceO][blockO] = copy[faceN][blockN]; // replace the old face with the new face
                 }
             }
         }
 
-        // Log the move
+        // record the move
+        if (turn > 0) {
+            String moveCommand = (turn == 1) ? move_name[side] :
+                    (turn == 2) ? "2" + move_name[side] :
+                            "'" + move_name[side] + "'";
+            moves.add(moveCommand);
+            move_num++;
+        }
+
+        // log the move
         if (turn != 0) {
             switch (turn) {
                 case 1:
@@ -202,6 +219,161 @@ public class RubiksCubeRobot extends LinearOpMode {
             moveNum++;
         }
     }
+
+    // prints a matrix of the input face of the cube
+    public void printCube(int face) {
+        if (face == all) {
+            String[] name = { "TOP", "BOTTOM", "FRONT", "BACK", "RIGHT", "LEFT" };  // the names of each face of the cube
+            for (int i = 0; i < 6; i = i + 3) {
+                telemetry.addData(name[i] + "\t\t", name[i + 1] + "\t\t" + name[i + 2]);  // prints the name of the face
+                telemetry.update();
+                for (int j = 0; j < 3; j++) {
+                    telemetry.addData(cube[i][j] + "\t", cube[i][j + 3] + "\t" + cube[i][j + 6] + "\t\t" +
+                            cube[i + 1][j] + "\t" + cube[i + 1][j + 3] + "\t" + cube[i + 1][j + 6] + "\t\t" +
+                            cube[i + 2][j] + "\t" + cube[i + 2][j + 3] + "\t" + cube[i + 2][j + 6]);
+                    telemetry.update();
+                }
+                telemetry.addLine();
+                telemetry.update();
+            }
+        } else {
+            // prints an individual face
+            for (int i = 0; i < 3; i++) {
+                telemetry.addData(cube[face][i] + "\t", cube[face][i + 3] + "\t" + cube[face][i + 6]);
+                telemetry.update();
+            }
+        }
+    }
+
+    // makes a copy of the current cube config
+    public void copyCube() {
+        // creates a copy of the cube
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 9; j++) {
+                copy[i][j] = cube[i][j];
+            }
+        }
+    }
+
+    /*
+    // simplifies the moves by combining like moves that are next to each other
+    public void simplifyMoves() {
+        ArrayList<String> move_new = new ArrayList<>();
+        String carry;
+        int count, skip;
+
+        // simplifies the moves, runs 5 times
+        for (int repeat = 0; repeat < 5; repeat++) {
+            count = 0;
+            skip = 0;
+
+            // checks the moves directly next and simplifies
+            for (int i = 0; i < move_num - 1; i++) {
+                if (skip == 0) {
+                    // if this move and the next are the same and single character
+                    if (move.get(i + 1).equals(move.get(i)) && move.get(i).length() == 1) {
+                        move_new.add("2" + move.get(i));
+                        count++;
+                        skip = 1;
+                    }
+                    // if this move and the next are the same and 3 characters
+                    else if (move.get(i + 1).equals(move.get(i)) && move.get(i).length() == 3) {
+                        switch (move.get(i)) {
+                            case "'U'": move_new.add("2U"); break;
+                            case "'D'": move_new.add("2D"); break;
+                            case "'F'": move_new.add("2F"); break;
+                            case "'B'": move_new.add("2B"); break;
+                            case "'R'": move_new.add("2R"); break;
+                            case "'L'": move_new.add("2L"); break;
+                        }
+                        count++;
+                        skip = 1;
+                    }
+                    // if this move and the next are the same and double character
+                    else if (move.get(i + 1).equals(move.get(i)) && move.get(i).length() == 2) {
+                        skip = 1;
+                    }
+                    // if the next move is double this move
+                    else if (move.get(i + 1).equals("2" + move.get(i))) {
+                        move_new.add("'" + move.get(i) + "'");
+                        count++;
+                        skip = 1;
+                    }
+                    // if the next move is half this move
+                    else if (move.get(i).equals("2" + move.get(i + 1))) {
+                        move_new.add("'" + move.get(i + 1) + "'");
+                        count++;
+                        skip = 1;
+                    }
+                    // if the next move is in the opposite direction of this move they cancel
+                    else if (move.get(i + 1).equals("'" + move.get(i) + "'") || move.get(i).equals("'" + move.get(i + 1) + "'")) {
+                        skip = 1;
+                    }
+                    // specific cases: 2U + 'U' (defined explicitly)
+                    else if ((move.get(i).equals("2U") && move.get(i + 1).equals("'U'")) || (move.get(i + 1).equals("2U") && move.get(i).equals("'U'"))) {
+                        move_new.add("U");
+                        skip = 1;
+                        count++;
+                    } else if ((move.get(i).equals("2D") && move.get(i + 1).equals("'D'")) || (move.get(i + 1).equals("2D") && move.get(i).equals("'D'"))) {
+                        move_new.add("D");
+                        skip = 1;
+                        count++;
+                    } else if ((move.get(i).equals("2F") && move.get(i + 1).equals("'F'")) || (move.get(i + 1).equals("2F") && move.get(i).equals("'F'"))) {
+                        move_new.add("F");
+                        skip = 1;
+                        count++;
+                    } else if ((move.get(i).equals("2B") && move.get(i + 1).equals("'B'")) || (move.get(i + 1).equals("2B") && move.get(i).equals("'B'"))) {
+                        move_new.add("B");
+                        skip = 1;
+                        count++;
+                    } else if ((move.get(i).equals("2R") && move.get(i + 1).equals("'R'")) || (move.get(i + 1).equals("2R") && move.get(i).equals("'R'"))) {
+                        move_new.add("R");
+                        skip = 1;
+                        count++;
+                    } else if ((move.get(i).equals("2L") && move.get(i + 1).equals("'L'")) || (move.get(i + 1).equals("2L") && move.get(i).equals("'L'"))) {
+                        move_new.add("L");
+                        skip = 1;
+                        count++;
+                    } else {
+                        move_new.add(move.get(i));
+                        count++;
+                    }
+                } else if (skip == 1) {
+                    skip = 0;  // reset skip
+                }
+            }
+
+            // gets the last move
+            if (skip == 0) {
+                move_new.add(move.get(move_num - 1));
+                count++;
+            }
+
+            // saves new moves to the move array
+            move.clear();
+            move.addAll(move_new);
+            move_num = count;
+        }
+
+        // checks if the next move doesn't affect this move, switch their placement
+        for (int i = 0; i < move_num - 2; i++) {
+            String currentMove = move.get(i);
+            String nextMove = move.get(i + 1);
+            String nextNextMove = move.get(i + 2);
+            if (currentMove.equals("U") || currentMove.equals("'U'") || currentMove.equals("2U")) {
+                if (nextMove.equals("D") || nextMove.equals("'D'") || nextMove.equals("2D")) {
+                    if (nextNextMove.equals("U") || nextNextMove.equals("'U'") || nextNextMove.equals("2U")) {
+                        carry = nextMove;
+                        move.set(i + 1, nextNextMove);
+                        move.set(i + 2, carry);
+                    }
+                }
+            }
+            // similar checks for D, F, B, R, L...
+        }
+    }
+
+     */
 
     private void rotateBaseToFace(int face) {
         // rotate the robot's base to align with the correct face
