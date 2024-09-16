@@ -30,7 +30,7 @@ public class ServoTest extends LinearOpMode {
         waitForStart();
 
         servo.setPosition(0.8);
-
+        sleep(1000);
         // Step 1: Extend servo to the middle of the cube
         servo.setPosition(0);  // Adjust as needed to extend sensor to the middle
         sleep(750);
@@ -40,7 +40,7 @@ public class ServoTest extends LinearOpMode {
         sleep(750);
 
         // Step 3: Rotate motor to scan corners and edges
-        motor.setPower(0.3);
+        motor.setPower(0.4);
         while (opModeIsActive()) {
             // Retrieve the color sensor values
             float[] hsvValues = new float[3];
