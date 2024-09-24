@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import java.util.ArrayList;  // Import ArrayList
+import java.util.ArrayList;
 
 @TeleOp
 public class ServoTest extends LinearOpMode {
@@ -15,7 +15,7 @@ public class ServoTest extends LinearOpMode {
 
     private int hue = 0;
     private String currentColor = "";
-    private ArrayList<String> colorArray = new ArrayList<>();  // Create an array to store colors
+    private ArrayList<String> colorArray = new ArrayList<>();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -31,18 +31,16 @@ public class ServoTest extends LinearOpMode {
 
         servo.setPosition(0.8);
         sleep(1000);
-        // Step 1: Extend servo to the middle of the cube
-        servo.setPosition(0);  // Adjust as needed to extend sensor to the middle
+
+        servo.setPosition(0);
         sleep(750);
 
-        // Step 2: Move servo back to the edge
-        servo.setPosition(0.8);  // Retract to the edge for scanning
+        servo.setPosition(0.8);
         sleep(750);
 
-        // Step 3: Rotate motor to scan corners and edges
         motor.setPower(0.4);
         while (opModeIsActive()) {
-            // Retrieve the color sensor values
+
             float[] hsvValues = new float[3];
             android.graphics.Color.RGBToHSV(
                     (int) (colorSensor.red() * 255),
@@ -51,26 +49,22 @@ public class ServoTest extends LinearOpMode {
                     hsvValues
             );
 
-            // Update the hue value
             hue = (int) hsvValues[0];
 
-            // Get the current color based on hue
             currentColor = getColor();
 
-            // Add detected color to the array
             colorArray.add(currentColor);
 
             if (motor.getCurrentPosition() >= motor.getTargetPosition()) {
-                motor.setPower(0);  // Stop the motor after one rotation
-                break;  // Exit the loop after one rotation
+                motor.setPower(0);
+                break;
             }
 
-            // Alternating servo position to scan corners/edges during rotation
             if (servo.getPosition() == 1) {
-                servo.setPosition(0.7);  // Adjust slightly for scanning corners
+                servo.setPosition(0.7);
                 sleep(300);
             } else {
-                servo.setPosition(1);  // Go back to scan edges
+                servo.setPosition(1);
                 sleep(300);
             }
 
@@ -81,20 +75,17 @@ public class ServoTest extends LinearOpMode {
             telemetry.update();
         }
 
-        // Motor reset after the loop ends
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setTargetPosition(0);
         servo.setPosition(1);
         sleep(250);
 
-        // Display all colors stored in the array after the loop
         telemetry.addData("Motor", "Reset complete");
         telemetry.addData("Servo", "Reset complete");
-        telemetry.addData("Colors Scanned", colorArray.toString());  // Display the array in telemetry
+        telemetry.addData("Colors Scanned", colorArray.toString());
         telemetry.update();
     }
 
-    // Method to determine the color based on the hue value
     public String getColor() {
         if (hue >= 25 && hue <= 40) {
             return "red";

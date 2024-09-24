@@ -1,31 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.Servo;
-import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
 import java.util.ArrayList;
 
-@TeleOp(name="RubiksCubeRobot", group="Linear Opmode")
-public class RubiksCubeRobot extends LinearOpMode {
+@TeleOp(name="RubiksCubeScannerTest", group="Linear Opmode")
+public class RubiksCubeScannerTest extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     ColorSensor colorSensor;
     private DcMotor baseMotor = null;  // rotates the cube base
-    private DcMotor flipMotor = null;  // flips the cube
     private Servo servo = null;   // color sensor on a servo to scan cube faces
 
-    // enum for states
     private enum RobotState {
         INIT,
         SCAN,
-        ANALYZE,
-        SOLVE,
-        ROTATE_FACE,
-        FLIP_CUBE,
         IDLE
     }
 
@@ -35,18 +29,13 @@ public class RubiksCubeRobot extends LinearOpMode {
     private int hue = 0;
     private String currentColor = "";
     private ArrayList<String> colorArray = new ArrayList<>(); // stores colors scanned from a face
-    private ArrayList<String> moves = new ArrayList<>(); // list of moves to solve the cube
 
     @Override
     public void runOpMode() {
         // initialize hardware
         colorSensor = hardwareMap.get(ColorSensor.class, "color_Sensor");
         baseMotor = hardwareMap.get(DcMotor.class, "baseMotor");
-        flipMotor = hardwareMap.get(DcMotor.class, "flipMotor");
         servo = hardwareMap.get(Servo.class, "colorServo");
-
-        // set initial state
-        currentState = RobotState.INIT;
 
         waitForStart();
         runtime.reset();
@@ -64,47 +53,13 @@ public class RubiksCubeRobot extends LinearOpMode {
                     telemetry.addData("State", "SCAN");
                     // scan the current face using color sensor and log into array
                     scanAndLogFaceColors();
-                    if (isCubeScanned()) {
-                        currentState = RobotState.ANALYZE;
-                    }
-                    break;
-
-                case ANALYZE:
-                    telemetry.addData("State", "ANALYZE");
-                    // analyze the scanned colors and prepare solve steps
-                    analyzeCube();
-                    currentState = RobotState.SOLVE;
-                    break;
-
-                case SOLVE:
-                    telemetry.addData("State", "SOLVE");
-                    // run the solving algorithm (placeholder for now)
-                    if (moves.isEmpty()) {
-                        telemetry.addData("Action", "No moves, solving completed.");
-                        currentState = RobotState.IDLE;
-                    } else {
-                        currentState = RobotState.ROTATE_FACE;  // move to rotating the face
-                    }
-                    break;
-
-                case ROTATE_FACE:
-                    telemetry.addData("State", "ROTATE_FACE");
-                    // rotate the cube face for solving
-                    rotateFace();
-                    currentState = RobotState.SOLVE;  // return to solving after rotating
-                    break;
-
-                case FLIP_CUBE:
-                    telemetry.addData("State", "FLIP_CUBE");
-                    // flip the cube to scan or reorient
-                    flipCube();
-                    currentState = RobotState.SCAN;  // scan next face after flipping
+                    currentState = RobotState.IDLE;  // stop after scanning one face
                     break;
 
                 case IDLE:
                     telemetry.addData("State", "IDLE");
-                    // wait for user input to restart scanning
-                    if (gamepad1.a) {
+                    telemetry.addData("Scanned Colors", colorArray.toString());
+                    if (gamepad1.a) {  // restart scanning with button press
                         currentState = RobotState.SCAN;
                     }
                     break;
@@ -163,40 +118,10 @@ public class RubiksCubeRobot extends LinearOpMode {
         telemetry.addData("Scanned Color", currentColor);
     }
 
-    // function to analyze the scanned colors and prepare solve steps
-    private void analyzeCube() {
-        // placeholder for the logic that will analyze the cube's scanned faces
-        telemetry.addData("Action", "Analyzing cube...");
-        // add logic here to analyze and generate solving moves
-        moves.add("rotate left");  // example move
-        moves.add("rotate right"); // example move
-    }
-
-    // function to determine if the cube is fully scanned
-    private boolean isCubeScanned() {
-        // logic to check if all faces are scanned
-        return colorArray.size() >= 6;  // assuming 6 faces scanned
-    }
-
-    // function to rotate a specific face of the cube
-    private void rotateFace() {
-        baseMotor.setPower(0.8);
-        sleep(500);  // simulate face rotation
-        baseMotor.setPower(0);
-        moves.remove(0);  // remove the move after it's executed
-    }
-
-    // function to flip the cube to access other faces
-    private void flipCube() {
-        flipMotor.setPower(0.8);
-        sleep(1000);  // simulate flipping motion
-        flipMotor.setPower(0);
-    }
-
     // reset motors to starting positions
     private void resetMotors() {
         baseMotor.setPower(0);
-        flipMotor.setPower(0);
+        servo.setPosition(0);
     }
 
     // function to determine the color based on hue
