@@ -19,7 +19,8 @@ public class RubiksCubeScannerTest extends LinearOpMode {
 
     private enum RobotState {
         INIT,
-        SCAN,
+        SCAN_CENTER,
+        SCAN_OUTER,
         IDLE
     }
 
@@ -41,68 +42,101 @@ public class RubiksCubeScannerTest extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
+            telemetry.addData("Current State", currentState.toString());
+
             switch (currentState) {
                 case INIT:
                     telemetry.addData("State", "INIT");
-                    // reset motors to prepare for scanning
-                    resetMotors();
-                    currentState = RobotState.SCAN;
+                    // reset motors and servos to starting positions
+                    resetMotorsAndServos();
+                    telemetry.update();
+
+                    // transition to SCAN_CENTER when ready
+                    currentState = RobotState.SCAN_CENTER;
                     break;
 
-                case SCAN:
-                    telemetry.addData("State", "SCAN");
-                    // scan the current face using color sensor and log into array
-                    scanAndLogFaceColors();
-                    currentState = RobotState.IDLE;  // stop after scanning one face
+                case SCAN_CENTER:
+                    telemetry.addData("State", "SCAN_CENTER");
+                    telemetry.update();
+                    // scan the center tile first without moving the base
+                    scanCenterTile();
+
+                    // after the center scan, move to scanning the outer tiles
+                    currentState = RobotState.SCAN_OUTER;
+                    break;
+
+                case SCAN_OUTER:
+                    telemetry.addData("State", "SCAN_OUTER");
+                    telemetry.update();
+
+                    // rotate base and scan the 8 outer tiles
+                    scanOuterTiles();
+
+                    // once done, transition to IDLE state
+                    currentState = RobotState.IDLE;
                     break;
 
                 case IDLE:
                     telemetry.addData("State", "IDLE");
                     telemetry.addData("Scanned Colors", colorArray.toString());
-                    if (gamepad1.a) {  // restart scanning with button press
-                        currentState = RobotState.SCAN;
+                    telemetry.update();
+
+                    // allow restarting scanning with a button press
+                    if (gamepad1.a) {
+                        currentState = RobotState.SCAN_CENTER;
                     }
                     break;
             }
 
-            // update telemetry data
-            telemetry.update();
+            telemetry.update();  // always keep telemetry updated
         }
     }
 
-    // function to scan the current face, log colors into an array, and control the servo and motor for scanning
-    private void scanAndLogFaceColors() {
+    // Function to scan the center tile
+    private void scanCenterTile() {
+        servo.setPosition(1);  // extend servo to center tile position
+        sleep(1000);  // wait for servo to stabilize
+
+        // Scan the center tile
+        scanColorAndLog();
+        telemetry.addData("Center Tile Scanned", currentColor);
+
+        // Retract servo after scanning center tile
+        servo.setPosition(0);
+        sleep(1000);  // wait for servo to fully retract
+    }
+
+    // Function to scan the outer tiles with base rotation
+    private void scanOuterTiles() {
+        // Set motor to rotate base for outer tiles (360 degrees)
         baseMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         baseMotor.setTargetPosition(526);  // adjust for 360-degree rotation
         baseMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        servo.setPosition(0.8);  // move servo to scanning position
-        sleep(1000);
+        baseMotor.setPower(0.3);
 
-        // perform scanning actions
-        for (int i = 0; i < 6; i++) {  // assuming scanning 6 sections
-            scanColorAndLog();  // scans a color and adds it to the array
+        // Allow base to rotate while scanning
+        while (opModeIsActive() && baseMotor.isBusy()) {
+            telemetry.addData("Base Rotating", baseMotor.getCurrentPosition());
 
-            // toggle servo position for different angles of scan
+            // move servo to different positions to scan each outer tile
             if (servo.getPosition() == 1) {
-                servo.setPosition(0.7);
+                servo.setPosition(0.6);
             } else {
-                servo.setPosition(1);
+                servo.setPosition(0.8);
             }
-            sleep(750);
+
+            // Scan outer tile while base rotates
+            scanColorAndLog();
+            sleep(250);  // wait between servo movements for stable scan
+
+            telemetry.update();
         }
 
-        // rotate the motor for the face scan
-        baseMotor.setPower(0.4);
-        while (opModeIsActive()) {
-            if (baseMotor.getCurrentPosition() >= baseMotor.getTargetPosition()) {
-                baseMotor.setPower(0);
-                break;
-            }
-        }
+        baseMotor.setPower(0);  // stop motor after rotation
     }
 
-    // function to scan the color, log it, and convert it to hsv
+    // Function to scan a color, log it, and convert it to hsv
     private void scanColorAndLog() {
         float[] hsvValues = new float[3];
         android.graphics.Color.RGBToHSV(
@@ -118,13 +152,13 @@ public class RubiksCubeScannerTest extends LinearOpMode {
         telemetry.addData("Scanned Color", currentColor);
     }
 
-    // reset motors to starting positions
-    private void resetMotors() {
+    // Reset motors and servos to their default positions
+    private void resetMotorsAndServos() {
         baseMotor.setPower(0);
         servo.setPosition(0);
     }
 
-    // function to determine the color based on hue
+    // Function to determine the color based on hue
     private String getColor() {
         if (hue >= 25 && hue <= 40) {
             return "red";
