@@ -15,11 +15,14 @@ public class motortest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        servo = hardwareMap.get(Servo.class, "one_Servo");
-        motor = hardwareMap.get(DcMotor.class, "one_Drive");
-        colorSensor = hardwareMap.get(ColorSensor.class, "color_Sensor");
 
-        motor.setPower(1);
+        motor = hardwareMap.get(DcMotor.class, "flipMotor");
+
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setPower(.1);
+        motor.setTargetPosition(526);
+        motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motor.setTargetPosition(0);
         sleep(1000);
     }
 }

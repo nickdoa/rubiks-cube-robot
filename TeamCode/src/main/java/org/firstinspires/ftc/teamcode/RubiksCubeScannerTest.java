@@ -7,6 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
+
 import java.util.ArrayList;
 
 @TeleOp(name="RubiksCubeScannerTest", group="Linear Opmode")
@@ -30,6 +32,7 @@ public class RubiksCubeScannerTest extends LinearOpMode {
     private int hue = 0;
     private String currentColor = "";
     private ArrayList<String> colorArray = new ArrayList<>(); // stores colors scanned from a face
+    private int tilesScanned = 0;  // counter for tiles scanned
 
     @Override
     public void runOpMode() {
@@ -56,12 +59,11 @@ public class RubiksCubeScannerTest extends LinearOpMode {
                     break;
 
                 case SCAN_CENTER:
-                    telemetry.addData("State", "SCAN_CENTER");
+                    telemetry.addData("State", "SCAN_CENTER (skipped)");
                     telemetry.update();
-                    // scan the center tile first without moving the base
-                    scanCenterTile();
+                    // Skip scanning the center tile for now
 
-                    // after the center scan, move to scanning the outer tiles
+                    // after skipping, move to scanning the outer tiles
                     currentState = RobotState.SCAN_OUTER;
                     break;
 
@@ -92,20 +94,6 @@ public class RubiksCubeScannerTest extends LinearOpMode {
         }
     }
 
-    // Function to scan the center tile
-    private void scanCenterTile() {
-        servo.setPosition(1);  // extend servo to center tile position
-        sleep(1000);  // wait for servo to stabilize
-
-        // Scan the center tile
-        scanColorAndLog();
-        telemetry.addData("Center Tile Scanned", currentColor);
-
-        // Retract servo after scanning center tile
-        servo.setPosition(0);
-        sleep(1000);  // wait for servo to fully retract
-    }
-
     // Function to scan the outer tiles with base rotation
     private void scanOuterTiles() {
         // Set motor to rotate base for outer tiles (360 degrees)
@@ -113,23 +101,17 @@ public class RubiksCubeScannerTest extends LinearOpMode {
         baseMotor.setTargetPosition(526);  // adjust for 360-degree rotation
         baseMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        baseMotor.setPower(0.3);
+        baseMotor.setPower(0.2);
 
         // Allow base to rotate while scanning
-        while (opModeIsActive() && baseMotor.isBusy()) {
+        while (opModeIsActive() && baseMotor.isBusy() && tilesScanned < 8) {  // Ensure only 8 colors are scanned
             telemetry.addData("Base Rotating", baseMotor.getCurrentPosition());
 
-            // move servo to different positions to scan each outer tile
-            if (servo.getPosition() == 1) {
-                servo.setPosition(0.6);
-            } else {
-                servo.setPosition(0.8);
-            }
-
-            // Scan outer tile while base rotates
+            // Scan color while base rotates
+            sleep(500);
             scanColorAndLog();
-            sleep(250);  // wait between servo movements for stable scan
-
+            tilesScanned++;  // Increment the count of scanned tiles
+              // Wait longer between scans for stable color readings (adjusted to 750ms)
             telemetry.update();
         }
 
@@ -138,39 +120,33 @@ public class RubiksCubeScannerTest extends LinearOpMode {
 
     // Function to scan a color, log it, and convert it to hsv
     private void scanColorAndLog() {
-        float[] hsvValues = new float[3];
-        android.graphics.Color.RGBToHSV(
-                (int) (colorSensor.red() * 255),
-                (int) (colorSensor.green() * 255),
-                (int) (colorSensor.blue() * 255),
-                hsvValues
-        );
-
-        hue = (int) hsvValues[0];
+        hue = (int) JavaUtil.rgbToHue(colorSensor.red(), colorSensor.green(), colorSensor.blue());
         currentColor = getColor();  // get the color based on the hue
         colorArray.add(currentColor);  // log color into the array
-        telemetry.addData("Scanned Color", currentColor);
+        telemetry.addData("Status", "Run Time: " + runtime.toString());
+        telemetry.addData("Current Color ", currentColor);
+        telemetry.addData("Color ", hue);
     }
 
     // Reset motors and servos to their default positions
     private void resetMotorsAndServos() {
         baseMotor.setPower(0);
-        servo.setPosition(0);
+        tilesScanned = 0;  // reset the tile counter
     }
 
     // Function to determine the color based on hue
-    private String getColor() {
-        if (hue >= 25 && hue <= 40) {
+    public String getColor() {
+        if (hue >= 0 && hue <= 69) {
             return "red";
-        } else if (hue >= 200 && hue <= 225) {
+        } else if (hue >= 206 && hue <= 225) {
             return "blue";
-        } else if (hue >= 120 && hue <= 140) {
+        } else if (hue >= 145 && hue <= 165) {
             return "green";
-        } else if (hue >= 90 && hue <= 110) {
+        } else if (hue >= 100 && hue <= 110) {
             return "yellow";
-        } else if (hue >= 170 && hue <= 180) {
+        } else if (hue >= 185 && hue <= 195) {
             return "white";
-        } else if (hue >= 45 && hue <= 55) {
+        } else if (hue >= 70 && hue <= 90) {
             return "orange";
         } else {
             return "no color";

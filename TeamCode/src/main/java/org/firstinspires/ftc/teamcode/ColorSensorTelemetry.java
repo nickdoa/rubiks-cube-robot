@@ -44,17 +44,17 @@ public class ColorSensorTelemetry extends LinearOpMode {
     }
 
     public String getColor() {
-        if (hue >= 0 && hue <= 62) {
+        if (hue >= 0 && hue <= 69) {
             return "red";
         } else if (hue >= 206 && hue <= 225) {
             return "blue";
-        } else if (hue >= 155 && hue <= 165) {
+        } else if (hue >= 145 && hue <= 165) {
             return "green";
-        } else if (hue >= 115 && hue <= 118) {
+        } else if (hue >= 100 && hue <= 110) {
             return "yellow";
-        } else if (hue >= 185 && hue <= 191) {
+        } else if (hue >= 185 && hue <= 195) {
             return "white";
-        } else if (hue >= 70 && hue <= 77) {
+        } else if (hue >= 70 && hue <= 90) {
             return "orange";
         } else {
             return "no color";
