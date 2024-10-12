@@ -86,3 +86,5 @@ psdcd_cubepiec-class.txt
 
 doc
 
+# Ignore Daniel's Main.java debugging class
+TeamCode/src/main/java/org/firstinspires/ftc/teamcode/Main.java
