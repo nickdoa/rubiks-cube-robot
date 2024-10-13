@@ -6,7 +6,7 @@ import java.util.*;
  * permutation.
  * 
  * The purpose of this class is to return a sequence of moves to do on
- * the specified Cube instantiated within it.
+ * the specified Cube instantiated within it
  */
 public class CubeAlgorithm {
 

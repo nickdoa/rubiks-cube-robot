@@ -96,7 +96,10 @@ public class Cube {
     }
 
     public Cube(Cube other){
-        this.matrix.putAll(other.matrix);
+        this.matrix = new HashMap<Color, Color[]>();
+        for (Color c : other.matrix.keySet()){
+            this.matrix.put(c, other.matrix.get(c).clone());
+        }
     }
 
     public Cube(String sequence){
