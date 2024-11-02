@@ -38,61 +38,31 @@ public class Cube {
         will STILL correspond with the first column of WHITE.
     */
 
-    public final int NUM_FACES = 6;
-    public final int PIECES_PER_FACE = 9; // # of pieces on ONE face
-
-    public enum Color{
-        RED { @Override public String toString(){ return "R"; } },
-        BLUE { @Override public String toString(){ return "B"; } },
-        WHITE { @Override public String toString(){ return "W"; } },
-        YELLOW { @Override public String toString(){ return "Y"; } },
-        ORANGE { @Override public String toString(){ return "O"; } },
-        GREEN { @Override public String toString(){ return "G"; } };
-
-        public static Color fromInt(int idx){
-            switch (idx){
-                case 0: return RED;
-                case 1: return BLUE;
-                case 2: return WHITE;
-                case 3: return YELLOW;
-                case 4: return ORANGE;
-                case 5: return GREEN;
-                default: return null;
-            }
-        }
-
-        public static Color fromString(String idx){
-            switch (idx){
-                case "R": return RED;
-                case "B": return BLUE;
-                case "W": return WHITE;
-                case "Y": return YELLOW;
-                case "O": return ORANGE;
-                case "G": return GREEN;
-                default: return null;
-            }
-        }
-    }
+    public static final int NUM_FACES = 6;
+    public final static int PIECES_PER_FACE = 9; // # of pieces on ONE face
 
     // the KEY will represent the side color aka the center color BC CENTER COLOR SHALL STAY CONSISTENT
     // the VALUE will be the pieces on this face according to the "CUBE_MAP"
     private Map<Color, Color[]> matrix;
+    public Color prev; // the most recent face that was turned... for alg
+    public String sequence; // for alg
 
     // make default cube
     public Cube(){
+        sequence = ""; // for alg
         toDefault();
     }
 
     public Cube(boolean scramble){
         this();
-        if (scramble) this.scramble();
+        if (scramble) Cube.scramble(this);
     }
 
     public Cube(int turns){
         this();
         if (turns <= 0) return;
 
-        scramble(turns);
+        Cube.scramble(this, turns);
     }
 
     public Cube(Cube other){
@@ -100,25 +70,27 @@ public class Cube {
         for (Color c : other.matrix.keySet()){
             this.matrix.put(c, other.matrix.get(c).clone());
         }
+
+        sequence = other.sequence; // for alg
     }
 
     public Cube(String sequence){
         this();
-        this.scramble(sequence);
+        Cube.scramble(this, sequence);
     }
 
     public Cube(String[] sequence){
         this();
-        scramble(sequence);
+        Cube.scramble(this, sequence);
     }
 
     // makes this cube the solved permutation
     public void toDefault(){
-        matrix = makeDefault();
+        matrix = Cube.makeDefault();
     }
 
     // converts this object into a solved cube
-    private Map<Color, Color[]> makeDefault(){
+    private static Map<Color, Color[]> makeDefault(){
 
         Map<Color, Color[]> cube = new HashMap<Color, Color[]>();
 
@@ -135,7 +107,7 @@ public class Cube {
     }
 
     // make 3x3 color array of same color
-    private Color[] fullColorFace(Color faceColor){
+    private static Color[] fullColorFace(Color faceColor){
 
         Color[] face = new Color[PIECES_PER_FACE];
 
@@ -148,10 +120,12 @@ public class Cube {
 
     // changes the cube map based on what face was turned
     // clockwise is considered looking at a face on the CUBE_MAP and rotating it clockwise
-    public boolean turn(Color faceToturn, boolean clockwise){
+    public static boolean turn(Cube other, Color faceToturn, boolean clockwise){
         // i'm not smart enough to make code reusable for all 12 different turns
 
-        faceturn(faceToturn, clockwise);
+        Map<Color, Color[]> matrix = other.matrix;
+
+        faceturn(other, faceToturn, clockwise);
         switch (faceToturn){
 
             // CORNER SWAPPING = "alpha" and "beta" refer to the different sides of the corner, for r2 = "1:w6 & 2:b0", for r8 = "1:b6 & 2: y0"  
@@ -209,7 +183,7 @@ public class Cube {
         return true;
     }
 
-    public boolean turn(String turn){
+    public static boolean turn(Cube other, String turn){
 
         // if this is NOT a valid turn string... return false
         if (turn.length() < 1 || turn.length() > 2) return false;
@@ -223,28 +197,30 @@ public class Cube {
         Color face = Color.fromString(turn.substring(0, 1));
         
         switch(turnType){
-            case "": turn(face, true); break;
-            case "\'": turn(face, false); break;
-            case "2": turn(face, true); turn(face, true); break;
+            case "": turn(other, face, true); break;
+            case "\'": turn(other, face, false); break;
+            case "2": turn(other, face, true); turn(other, face, true); break;
         }
 
         return true;
     }
 
     // turns just the face...
-    private void faceturn(Color faceToturn, boolean clockwise){
-        Color[] face = matrix.get(faceToturn);
+    private static void faceturn(Cube other, Color faceToturn, boolean clockwise){
+        other.prev = faceToturn; // added
+
+        Color[] face = other.matrix.get(faceToturn);
 
         ArraySwap.swapFour(face, 0, 2, 8, 6, clockwise);
         ArraySwap.swapFour(face, 1, 5, 7, 3, clockwise);
     }
 
     // overload
-    public boolean scramble(String sequence){
-        return scramble(sequence.split(" ", -1));
+    public static boolean scramble(Cube other, String sequence){
+        return scramble(other, sequence.split(" ", -1));
     }
     // scrambles this cube based on the string array sequence of moves.  returns true or false if it was successful.
-    public boolean scramble(String[] sequence){
+    public static boolean scramble(Cube other, String[] sequence){
         int length = sequence.length;
 
         /* 
@@ -274,14 +250,14 @@ public class Cube {
 
             switch (curr.substring(1)){
                 case "":
-                    turn(face, true);
+                    turn(other, face, true);
                     break;
                 case "\'":
-                    turn(face, false);
+                    turn(other, face, false);
                     break;
                 case "2":
-                    turn(face, true);
-                    turn(face, true);
+                    turn(other, face, true);
+                    turn(other, face, true);
                     break;
             }
         }
@@ -290,25 +266,25 @@ public class Cube {
     }
 
     // scrambles this cube for a certain amount of turns
-    public boolean scramble(int turns){
-        return scramble(turns, turns);
+    public static boolean scramble(Cube other, int turns){
+        return scramble(other, turns, turns);
     }
 
-    public boolean scramble(int turns, boolean optimized){
-        return scramble(turns, turns, optimized);
+    public static boolean scramble(Cube other, int turns, boolean optimized){
+        return scramble(other, turns, turns, optimized);
     }
 
     // default scramble for 5 to 20 moves
-    public boolean scramble(){
-        return scramble(5, 20);
+    public static boolean scramble(Cube other){
+        return scramble(other, 5, 20);
     }
 
-    public boolean scramble(boolean optimized){
-        return scramble(5, 20, optimized);
+    public static boolean scramble(Cube other, boolean optimized){
+        return scramble(other, 5, 20, optimized);
     }
 
-    public boolean scramble(int min, int max){
-        return scramble(min, max, true);
+    public static boolean scramble(Cube other, int min, int max){
+        return scramble(other, min, max, true);
     }
     
     /**
@@ -317,7 +293,7 @@ public class Cube {
      * if true, the turns generated will not repeat tunring the same face as the previous move.
      * if false, duplicate face turns are not checked.
      */ 
-    public boolean scramble(int min, int max, boolean optimized){
+    public static boolean scramble(Cube other, int min, int max, boolean optimized){
 
         // setup randoms
         int numTurns = (int)((max - min + 1) * Math.random()) + min;
@@ -360,16 +336,11 @@ public class Cube {
         }
 
         System.out.println(Arrays.toString(scrambleSeq));
-        return scramble(scrambleSeq);
-    }
-
-    // THE THING WE'VE ALL BEEN WAITING FOR.  This function gives a sequence of turns that would solve this cube.
-    public String[] solve(){
-        return null;
+        return scramble(other, scrambleSeq);
     }
 
     @Override public String toString(){
-        return getCubeMap();
+        return getCubeMap(this);
     }
 
     public boolean equals(Cube other){
@@ -384,7 +355,9 @@ public class Cube {
         return true;
     }
 
-    public String getCubeMap(){
+    public static String getCubeMap(Cube other){
+        Map<Color, Color[]> matrix = other.matrix;
+
         // MAKES THE VISUAL CUBE MAP
         String msg = "";
 
@@ -418,6 +391,143 @@ public class Cube {
         }
 
         return msg;
+    }
+
+    // reverse move sequence
+    public static String reverseSequence(String sequence){
+
+        String result = "";
+
+        String[] arr = sequence.split(" ");
+        for (int i = arr.length-1; i >= 0; i--){
+            // add reverse move method
+            result += reverseMove(arr[i]) + " ";
+        }
+        result = result.substring(0, result.length()-1);
+
+        if (result.length() > 1) return result;
+
+        return null;
+    }
+
+    public static String reverseMove(String move){
+        if (move == null || move.length() < 1 || move.length() > 2) return null;
+        Color face = Color.fromString(move.substring(0, 1));
+        if (face == null) return null;
+
+        String moveType = move.substring(1);
+
+        switch(moveType){
+            case "\'": return face.toString();
+            case "": return face.toString() + "\'";
+            case "2": return face.toString() + "2";
+        }
+        return null;
+    }
+
+    // return the color on the red-orange side of this piece
+    public static Color getAlpha(Cube other, Piece p){
+        Map<Color, Color[]> matrix = other.matrix;
+        switch(p){
+            case R0G2W0: return matrix.get(Color.RED)[0];
+            case G1W1: return null;
+            case O2G0W2: return matrix.get(Color.ORANGE)[2];
+            case R1W3: return matrix.get(Color.RED)[1];
+            case W4: return null;
+            case O1W5: return matrix.get(Color.ORANGE)[1];
+            case R2B0W6: return matrix.get(Color.RED)[2];
+            case B1W7: return null;
+            case O0B2W8: return matrix.get(Color.ORANGE)[0];
+            case R3G5: return matrix.get(Color.RED)[3];
+            case G4: return null; 
+            case O5G3: return matrix.get(Color.ORANGE)[5];
+            case R4: return matrix.get(Color.RED)[4];
+            case NULL: return null;
+            case O4: return matrix.get(Color.ORANGE)[4];
+            case R5B3: return matrix.get(Color.RED)[5];
+            case B4: return null; 
+            case O3B5: return matrix.get(Color.ORANGE)[3];
+            case R6G8Y6: return matrix.get(Color.RED)[6];
+            case G7Y7: return null;
+            case O8G6Y8: return matrix.get(Color.ORANGE)[8];
+            case R7Y3: return matrix.get(Color.RED)[7];
+            case Y4: return null; 
+            case O7Y5: return matrix.get(Color.ORANGE)[7];
+            case R8B6Y0: return matrix.get(Color.RED)[8];
+            case B7Y1: return null;
+            case O6B8Y2: return matrix.get(Color.ORANGE)[6];
+            default: return null;
+        }
+    }
+
+    // return the color on the blue-green side of this piece
+    public static Color getBeta(Cube other, Piece p){
+        Map<Color, Color[]> matrix = other.matrix;
+        switch(p){
+            case R0G2W0: return matrix.get(Color.GREEN)[2];
+            case G1W1: return matrix.get(Color.GREEN)[1];
+            case O2G0W2: return matrix.get(Color.GREEN)[0];
+            case R1W3: return null;
+            case W4: return null;
+            case O1W5: return null;
+            case R2B0W6: return matrix.get(Color.BLUE)[0];
+            case B1W7: return matrix.get(Color.BLUE)[1];
+            case O0B2W8: return matrix.get(Color.BLUE)[2];
+            case R3G5: return matrix.get(Color.GREEN)[5];
+            case G4: return matrix.get(Color.GREEN)[4]; 
+            case O5G3: return matrix.get(Color.GREEN)[3];
+            case R4: return null;
+            case NULL: return null; 
+            case O4: return null;
+            case R5B3: return matrix.get(Color.BLUE)[3];
+            case B4: return matrix.get(Color.BLUE)[4]; 
+            case O3B5: return matrix.get(Color.BLUE)[5];
+            case R6G8Y6: return matrix.get(Color.GREEN)[8];
+            case G7Y7: return matrix.get(Color.GREEN)[7];
+            case O8G6Y8: return matrix.get(Color.GREEN)[6];
+            case R7Y3: return null;
+            case Y4: return null; 
+            case O7Y5: return null;
+            case R8B6Y0: return matrix.get(Color.BLUE)[6];
+            case B7Y1: return matrix.get(Color.BLUE)[7];
+            case O6B8Y2: return matrix.get(Color.BLUE)[8];
+            default: return null;
+        }
+    }
+
+    // return the color on the white-yellow side of this piece
+    public static Color getGamma(Cube other, Piece p){
+        Map<Color, Color[]> matrix = other.matrix;
+        switch(p){
+            case R0G2W0: return matrix.get(Color.WHITE)[0];
+            case G1W1: return matrix.get(Color.WHITE)[1];
+            case O2G0W2: return matrix.get(Color.WHITE)[2];
+            case R1W3: return matrix.get(Color.WHITE)[3];
+            case W4: return matrix.get(Color.WHITE)[4];
+            case O1W5: return matrix.get(Color.WHITE)[5];
+            case R2B0W6: return matrix.get(Color.WHITE)[6];
+            case B1W7: return matrix.get(Color.WHITE)[7];
+            case O0B2W8: return matrix.get(Color.WHITE)[8];
+            case R3G5: return null;
+            case G4: return null;
+            case O5G3: return null;
+            case R4: return null;
+            case NULL: return null;
+            case O4: return null;
+            case R5B3: return null;
+            case B4: return null;
+            case O3B5: return null;
+            case R6G8Y6: return matrix.get(Color.YELLOW)[6];
+            case G7Y7: return matrix.get(Color.YELLOW)[7];
+            case O8G6Y8: return matrix.get(Color.YELLOW)[8];
+            case R7Y3: return matrix.get(Color.YELLOW)[3];
+            case Y4: return matrix.get(Color.YELLOW)[4]; 
+            case O7Y5: return matrix.get(Color.YELLOW)[5];
+            case R8B6Y0: return matrix.get(Color.YELLOW)[0];
+            case B7Y1: return matrix.get(Color.YELLOW)[1];
+            case O6B8Y2: return matrix.get(Color.YELLOW)[2];
+            default: return null;
+        }
     }
 
 }
