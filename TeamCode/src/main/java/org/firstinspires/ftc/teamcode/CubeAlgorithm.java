@@ -30,14 +30,27 @@ public class CubeAlgorithm {
         // INCREASE EFFICIENCY WITH BINARY SEARCH AND MERGE SORT
         // BECAUSE RN THIS IS LEGIT JUST LINEAR SEARCH
 
+        System.out.println("sorting...");
+
+        // sort arrays
+        cube_mergeSort(arr1);
+        cube_mergeSort(arr2);
+
+        System.out.println("searching...");
+
+        int commonIdx = -1;
         for (int i = 0; i < arr1.size(); i++){
-            for (int j = 0; j < arr2.size(); j++){
-                if (arr1.get(i).equals(arr2.get(j))){
-                    return new Cube[]{arr1.get(i), arr2.get(j)};
-                }
+
+            commonIdx = cube_binarySearch(arr2, 0, arr2.size(), arr1.get(i));
+            //System.out.println(commonIdx);
+
+            if (commonIdx >= 0){
+                System.out.println("finished...!");
+                return new Cube[]{arr1.get(i), arr2.get(commonIdx)};
             }
         }
 
+        System.out.println("finished...");
         return null;
     }
 
@@ -214,7 +227,7 @@ public class CubeAlgorithm {
 
                 clone = new Cube(copy);
                 Cube.turn(clone, face, true);
-                if (clone.sequence.length() > 1) clone.sequence += " "; // prevent extra space at end
+                if (clone.sequence.length() > 0) clone.sequence += " "; // prevent extra space at end
                 clone.sequence += face.toString();
                 if (check_g_prime && isG_PRIME(clone)){
                     scramble = clone;
@@ -226,7 +239,7 @@ public class CubeAlgorithm {
 
                 clone = new Cube(copy);
                 Cube.turn(clone, face, false);
-                if (clone.sequence.length() > 1) clone.sequence += " "; // prevent extra space at end
+                if (clone.sequence.length() > 0) clone.sequence += " "; // prevent extra space at end
                 clone.sequence += face.toString() + "\'";
                 if (check_g_prime && isG_PRIME(clone)){
                     scramble = clone;
@@ -240,7 +253,7 @@ public class CubeAlgorithm {
             clone = new Cube(copy);
             Cube.turn(clone, face, true);
             Cube.turn(clone, face, true);
-            if (clone.sequence.length() > 1) clone.sequence += " ";
+            if (clone.sequence.length() > 0) clone.sequence += " ";
             clone.sequence += face.toString() + "2";
             if (check_g_prime && isG_PRIME(clone)){
                 scramble = clone;
@@ -398,5 +411,94 @@ public class CubeAlgorithm {
         // else... return true!
 
         return true;
+    }
+
+    // sorts in ascending order
+    private static void cube_mergeSort(LinkedList<Cube> toSort){
+
+        //System.out.println("\ntotal before");
+        //for (int i = 0; i < toSort.size(); i++){ System.out.println(Cube.stringHash(toSort.get(i))); }
+
+        if (toSort.size() < 2) return; // base case
+
+        int r = toSort.size();
+        int l = 0;
+        int m = (l + r) / 2;
+
+        LinkedList<Cube> left = new LinkedList<>();
+        // copy left-half of array to left
+        for (int i = 0; i < m; i++){ left.addLast(toSort.get(i)); }
+
+        //System.out.println("\nleft before");
+        //for (int i = 0; i < left.size(); i++){ System.out.println(Cube.stringHash(left.get(i))); }
+        cube_mergeSort(left);
+        //System.out.println("left after");
+        //for (int i = 0; i < left.size(); i++){ System.out.println(Cube.stringHash(left.get(i))); }
+
+        LinkedList<Cube> right = new LinkedList<>();
+        // copy right-half of array to right
+        for (int i = m; i < r; i++) { right.addLast(toSort.get(i)); }
+
+        //System.out.println("\nright before");
+        //for (int i = 0; i < right.size(); i++){ System.out.println(Cube.stringHash(right.get(i))); }
+        cube_mergeSort(right);
+        //System.out.println("right after");
+        //for (int i = 0; i < right.size(); i++){ System.out.println(Cube.stringHash(right.get(i))); }
+
+        
+        // MERGE SORTED HALVES
+        Cube l_cube = null;
+        Cube r_cube = null;
+        toSort.clear();
+        for (int i = l; i < r; i++){
+            if (left.isEmpty() && !right.isEmpty()){
+                toSort.addLast(right.getFirst());
+                right.removeFirst();
+                continue;
+            } else if (right.isEmpty() && !left.isEmpty()){
+                toSort.addLast(left.getFirst());
+                left.removeFirst();
+                continue;
+            } else if (left.isEmpty() && right.isEmpty()){
+                break;
+            }
+
+            l_cube = left.getFirst();
+            r_cube = right.getFirst();
+            
+            if (Cube.stringHash(l_cube).compareTo(Cube.stringHash(r_cube)) >= 0){
+                toSort.addLast(r_cube);
+                right.removeFirst();
+            } else {
+                toSort.addLast(l_cube);
+                left.removeFirst();
+            }
+        }
+
+        // done
+        //System.out.println("total after");
+        //for (int i = 0; i < toSort.size(); i++){ System.out.println(Cube.stringHash(toSort.get(i))); }
+        
+    }
+
+    private static int cube_binarySearch(LinkedList<Cube> q, int l, int r, Cube key){
+
+        int m = (l + r) / 2;
+        int size = r-l;
+
+        if (size < 2 && q.get(m).equals(key)) return m;
+        if (size < 2 && !q.get(m).equals(key)) return -1;
+
+        // do comparisons
+        Cube test = q.get(m);
+        int compareValue = Cube.stringHash(key).compareTo(Cube.stringHash(test));
+
+        if (compareValue > 0){ // if key is to the right...
+            return cube_binarySearch(q, m, r, key); // search right half
+        } else if (compareValue < 0){ // if key is to the left...
+            return cube_binarySearch(q, l, m, key); // search left half
+        } else {
+            return m;
+        }
     }
 }

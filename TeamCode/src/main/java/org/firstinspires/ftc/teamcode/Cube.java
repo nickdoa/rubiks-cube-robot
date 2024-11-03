@@ -393,6 +393,24 @@ public class Cube {
         return msg;
     }
 
+    // for sorting & searching algs
+    public static String stringHash(Cube other){
+
+        String hash = "";
+        Map<Color, Color[]> matrix = other.matrix;
+
+        for (Color c : Color.values()){
+
+            Color[] face = matrix.get(c);
+
+            for (int i = 0; i < PIECES_PER_FACE; i++){
+                hash += face[i].toString();
+            }
+        }
+
+        return hash;
+    }
+
     // reverse move sequence
     public static String reverseSequence(String sequence){
 
@@ -405,24 +423,31 @@ public class Cube {
         }
         result = result.substring(0, result.length()-1);
 
-        if (result.length() > 1) return result;
+        if (result.length() > 0) return result;
 
         return null;
     }
 
     public static String reverseMove(String move){
+
         if (move == null || move.length() < 1 || move.length() > 2) return null;
         Color face = Color.fromString(move.substring(0, 1));
         if (face == null) return null;
 
         String moveType = move.substring(1);
 
-        switch(moveType){
-            case "\'": return face.toString();
-            case "": return face.toString() + "\'";
-            case "2": return face.toString() + "2";
+        String result = face.toString();
+        if (moveType.equals("")){
+            result += "\'";
+        } else if (moveType.equals("2")){
+            result += "2";
+        } else if (moveType.equals("\'")){
+            // keep og
+        } else {
+            result = null;
         }
-        return null;
+
+        return result;
     }
 
     // return the color on the red-orange side of this piece
