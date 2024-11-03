@@ -16,6 +16,7 @@ public class CubeAlgorithm {
     private int maxInstances = 1000000; // take 2726049 instances is max memory LOL
     public String gSequence;
     public String sequence;
+    public String finalSeq = null;
 
     
 
@@ -115,11 +116,31 @@ public class CubeAlgorithm {
 
     }
 
+    public boolean kociemba_solve(Cube instance){
+
+        if (solveToG_PRIME(instance)){
+
+            if (scramble == null) return false;
+            sequence = scramble.sequence;
+            
+            if (solveG_PRIME(scramble)){
+                finalSeq = sequence + " " + gSequence;
+                return true;
+            } else {
+                return false; // ggs, prolly shouldnt happen unless there's an error or memory oh nos
+            }
+        } else {
+            // do cfop solve
+            return false;
+        }
+    }
+
     public boolean solveG_PRIME(Cube instance){
         if (!isG_PRIME(instance)){ return false; }
         if (instance.equals(solved)) return true;
 
         // SOLVING SETUP
+        instance.sequence = "";
         instance.prev = null; // IMPORTANT
 
         // QUEUES THAT REPRESENT POSSIBLE PERMUTAITON OF GPRIME AND SOLVED IN n MOVES
@@ -220,9 +241,22 @@ public class CubeAlgorithm {
 
                 if (prevprev == face) continue;
             }
-            
 
             // DO MOVESET
+            clone = new Cube(copy);
+            Cube.turn(clone, face, true);
+            Cube.turn(clone, face, true);
+            if (clone.sequence.length() > 0) clone.sequence += " ";
+            clone.sequence += face.toString() + "2";
+            if (check_g_prime && isG_PRIME(clone)){
+                scramble = clone;
+                return true;
+            }
+            q.add(clone);
+
+            // check for max memory exception
+
+            
             if (!g_prime || (face == Color.WHITE || face == Color.YELLOW)){
 
                 clone = new Cube(copy);
@@ -250,18 +284,7 @@ public class CubeAlgorithm {
                 // check for max memory exception
             }
 
-            clone = new Cube(copy);
-            Cube.turn(clone, face, true);
-            Cube.turn(clone, face, true);
-            if (clone.sequence.length() > 0) clone.sequence += " ";
-            clone.sequence += face.toString() + "2";
-            if (check_g_prime && isG_PRIME(clone)){
-                scramble = clone;
-                return true;
-            }
-            q.add(clone);
-
-            // check for max memory exception
+            
         }
 
         return !check_g_prime;
