@@ -201,11 +201,10 @@ public class CubeAlgorithm {
         return false;
     }
 
-    public boolean solveToG_PRIME(Cube instance){
-
+    public boolean solveToG_PRIME(Cube instance) {
         instance.prev = null; // IMPORTANT
 
-        if (isG_PRIME(instance)){
+        if (isG_PRIME(instance)) {
             return true;
         }
 
@@ -214,13 +213,15 @@ public class CubeAlgorithm {
 
         Cube copy = null;
         Cube clone = null;
-        while (!q.isEmpty() && q.peek().sequence.split(" ").length < maxItrs && q.size() < maxInstances){
+        while (!q.isEmpty() && q.peek().sequence.split(" ").length < maxItrs && q.size() < maxInstances) {
             copy = q.poll();
             if (addinstances(copy, q, false, true)) return true;
         }
-        
+
         scramble = clone;
-        return false;
+
+        // if the memory limits are reached or no solution is found, attempt cfop as a backup
+        return solveUsingCFOP(instance);
     }
 
     private boolean addinstances(Cube copy, Queue<Cube> q, boolean g_prime, boolean check_g_prime){
@@ -523,5 +524,84 @@ public class CubeAlgorithm {
         } else {
             return m;
         }
+    }
+
+    /**
+     * cfop-based backup solution for solving the cube when solveToG_PRIME fails...
+     * im sure you know this already
+     * 1. cross
+     * 2. first two layers (F2L)
+     * 3. orientation of the last layer (OLL)
+     * 4. premutation of the last layer (PLL)
+     */
+
+    public boolean solveUsingCFOP(Cube instance) {
+        // step 1: solve the cross
+        if (!solveCross(instance)) {
+            return false;
+        }
+
+        // step 2: solve the first two layers (F2L)
+        if (!solveF2L(instance)) {
+            return false;
+        }
+
+        // step 3: orient the last layer (OLL)
+        if (!solveOLL(instance)) {
+            return false;
+        }
+
+        // step 4: Permute the last layer (PLL)
+        if (!solvePLL(instance)) {
+            return false;
+        }
+
+        // if all steps succeed, set the sequence and return true
+        this.sequence = instance.sequence;
+        return true;
+    }
+
+    /**
+     * solves the cross on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solveCross(Cube instance) {
+        // Placeholder for the logic to solve the cross.
+        // Implement actual cross-solving logic here.
+        return instance.solveCross();
+    }
+
+    /**
+     * solves the first two layers (F2L) on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solveF2L(Cube instance) {
+        // Placeholder for the logic to solve F2L.
+        // Implement actual F2L-solving logic here.
+        return instance.solveF2L();
+    }
+
+    /**
+     * solves the orientation of the last layer (OLL) on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solveOLL(Cube instance) {
+        // Placeholder for the logic to solve OLL.
+        // Implement actual OLL-solving logic here.
+        return instance.solveOLL();
+    }
+
+    /**
+     * solves the permutation of the last layer (PLL) on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solvePLL(Cube instance) {
+        // Placeholder for the logic to solve PLL.
+        // Implement actual PLL-solving logic here.
+        return instance.solvePLL();
     }
 }
