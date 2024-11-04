@@ -7,6 +7,8 @@
  * The Cube data structure class uses this class in order to accomplish
  * the representation of configurations of a cube, like turning.
  */
+import java.util.*;
+
 public abstract class ArraySwap{
     // swaps these elements in the array
     public static void swap(Object[] array, int idx1, int idx2){
