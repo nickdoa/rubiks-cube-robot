@@ -4,10 +4,11 @@ import java.util.*;
  * This class will handle ALL algorithm logic for solving a cube, or possibly
  * returning a sequence of moves that reach a desired outcome of a certain
  * permutation.
- * 
+ *
  * The purpose of this class is to return a sequence of moves to do on
  * the specified Cube instantiated within it.
  */
+
 public class CubeAlgorithm {
     private Cube solved;
     public Cube scramble;
@@ -16,9 +17,8 @@ public class CubeAlgorithm {
     private int maxInstances = 1000000; // take 2726049 instances is max memory LOL
     public String gSequence;
     public String sequence;
-    public String finalSeq = null;
 
-    
+
 
     public CubeAlgorithm(Cube other){
         scramble = other;
@@ -31,27 +31,14 @@ public class CubeAlgorithm {
         // INCREASE EFFICIENCY WITH BINARY SEARCH AND MERGE SORT
         // BECAUSE RN THIS IS LEGIT JUST LINEAR SEARCH
 
-        System.out.println("sorting...");
-
-        // sort arrays
-        cube_mergeSort(arr1);
-        cube_mergeSort(arr2);
-
-        System.out.println("searching...");
-
-        int commonIdx = -1;
         for (int i = 0; i < arr1.size(); i++){
-
-            commonIdx = cube_binarySearch(arr2, 0, arr2.size(), arr1.get(i));
-            //System.out.println(commonIdx);
-
-            if (commonIdx >= 0){
-                System.out.println("finished...!");
-                return new Cube[]{arr1.get(i), arr2.get(commonIdx)};
+            for (int j = 0; j < arr2.size(); j++){
+                if (arr1.get(i).equals(arr2.get(j))){
+                    return new Cube[]{arr1.get(i), arr2.get(j)};
+                }
             }
         }
 
-        System.out.println("finished...");
         return null;
     }
 
@@ -71,7 +58,7 @@ public class CubeAlgorithm {
             turnFace = (int)(6 * Math.random());
             turnType = (int)(3 * Math.random());
 
-            
+
             face = Color.fromInt(turnFace);
 
             // modified for gprime set
@@ -116,31 +103,11 @@ public class CubeAlgorithm {
 
     }
 
-    public boolean kociemba_solve(Cube instance){
-
-        if (solveToG_PRIME(instance)){
-
-            if (scramble == null) return false;
-            sequence = scramble.sequence;
-            
-            if (solveG_PRIME(scramble)){
-                finalSeq = sequence + " " + gSequence;
-                return true;
-            } else {
-                return false; // ggs, prolly shouldnt happen unless there's an error or memory oh nos
-            }
-        } else {
-            // do cfop solve
-            return false;
-        }
-    }
-
     public boolean solveG_PRIME(Cube instance){
         if (!isG_PRIME(instance)){ return false; }
         if (instance.equals(solved)) return true;
 
         // SOLVING SETUP
-        instance.sequence = "";
         instance.prev = null; // IMPORTANT
 
         // QUEUES THAT REPRESENT POSSIBLE PERMUTAITON OF GPRIME AND SOLVED IN n MOVES
@@ -173,7 +140,7 @@ public class CubeAlgorithm {
             // COMPARE ne n permutation with solved cube queue
             common = null; // remove garbage value
             common = hasCommons(q, sq);
-            if (common != null){ 
+            if (common != null){
                 gSequence = common[0].sequence + " " + Cube.reverseSequence(common[1].sequence);
                 return true;
             }
@@ -201,10 +168,11 @@ public class CubeAlgorithm {
         return false;
     }
 
-    public boolean solveToG_PRIME(Cube instance) {
+    public boolean solveToG_PRIME(Cube instance){
+
         instance.prev = null; // IMPORTANT
 
-        if (isG_PRIME(instance)) {
+        if (isG_PRIME(instance)){
             return true;
         }
 
@@ -213,15 +181,13 @@ public class CubeAlgorithm {
 
         Cube copy = null;
         Cube clone = null;
-        while (!q.isEmpty() && q.peek().sequence.split(" ").length < maxItrs && q.size() < maxInstances) {
+        while (!q.isEmpty() && q.peek().sequence.split(" ").length < maxItrs && q.size() < maxInstances){
             copy = q.poll();
             if (addinstances(copy, q, false, true)) return true;
         }
 
         scramble = clone;
-
-        // if the memory limits are reached or no solution is found, attempt cfop as a backup
-        return solveUsingCFOP(instance);
+        return false;
     }
 
     private boolean addinstances(Cube copy, Queue<Cube> q, boolean g_prime, boolean check_g_prime){
@@ -231,9 +197,9 @@ public class CubeAlgorithm {
         // for each face
         for (Color face : Color.values()){
             // optimizations
-            if (face == copy.prev) continue; 
+            if (face == copy.prev) continue;
             if (Color.opp(face) == copy.prev && Color.isDom(copy.prev)) continue;
-            
+
             // last optimization i could think of
             // add if prev prev is this one && prev was opp
             if (copy.sequence.length() > 3 && Color.opp(face) == copy.prev){ // if the sequence has at least 1 move...
@@ -243,26 +209,13 @@ public class CubeAlgorithm {
                 if (prevprev == face) continue;
             }
 
+
             // DO MOVESET
-            clone = new Cube(copy);
-            Cube.turn(clone, face, true);
-            Cube.turn(clone, face, true);
-            if (clone.sequence.length() > 0) clone.sequence += " ";
-            clone.sequence += face.toString() + "2";
-            if (check_g_prime && isG_PRIME(clone)){
-                scramble = clone;
-                return true;
-            }
-            q.add(clone);
-
-            // check for max memory exception
-
-            
             if (!g_prime || (face == Color.WHITE || face == Color.YELLOW)){
 
                 clone = new Cube(copy);
                 Cube.turn(clone, face, true);
-                if (clone.sequence.length() > 0) clone.sequence += " "; // prevent extra space at end
+                if (clone.sequence.length() > 1) clone.sequence += " "; // prevent extra space at end
                 clone.sequence += face.toString();
                 if (check_g_prime && isG_PRIME(clone)){
                     scramble = clone;
@@ -274,7 +227,7 @@ public class CubeAlgorithm {
 
                 clone = new Cube(copy);
                 Cube.turn(clone, face, false);
-                if (clone.sequence.length() > 0) clone.sequence += " "; // prevent extra space at end
+                if (clone.sequence.length() > 1) clone.sequence += " "; // prevent extra space at end
                 clone.sequence += face.toString() + "\'";
                 if (check_g_prime && isG_PRIME(clone)){
                     scramble = clone;
@@ -285,7 +238,18 @@ public class CubeAlgorithm {
                 // check for max memory exception
             }
 
-            
+            clone = new Cube(copy);
+            Cube.turn(clone, face, true);
+            Cube.turn(clone, face, true);
+            if (clone.sequence.length() > 1) clone.sequence += " ";
+            clone.sequence += face.toString() + "2";
+            if (check_g_prime && isG_PRIME(clone)){
+                scramble = clone;
+                return true;
+            }
+            q.add(clone);
+
+            // check for max memory exception
         }
 
         return !check_g_prime;
@@ -297,7 +261,7 @@ public class CubeAlgorithm {
 
         // *check yellow-white gamma properties*
         Piece[] topAndBottom = {Piece.R0G2W0, Piece.G1W1, Piece.O2G0W2, Piece.R1W3, Piece.O1W5, Piece.R2B0W6, Piece.B1W7, Piece.O0B2W8,
-                                Piece.R6G8Y6, Piece.G7Y7, Piece.O8G6Y8, Piece.R7Y3, Piece.O7Y5, Piece.R8B6Y0, Piece.B7Y1, Piece.O6B8Y2};
+                Piece.R6G8Y6, Piece.G7Y7, Piece.O8G6Y8, Piece.R7Y3, Piece.O7Y5, Piece.R8B6Y0, Piece.B7Y1, Piece.O6B8Y2};
         // for each top-bottom side of the yellow and white faces...
         for (Piece p : topAndBottom){
             Color gamma = Cube.getGamma(instance, p);
@@ -366,7 +330,7 @@ public class CubeAlgorithm {
 
         // if any of the corner triples does not follow its charge property... return false
         if (!(followsChargeProperty(instance, redGreen[0], redGreen[1]) && followsChargeProperty(instance, redBlue[0], redBlue[1])
-            && followsChargeProperty(instance, orangeBlue[0], orangeBlue[1]) && followsChargeProperty(instance, orangeGreen[0], orangeGreen[1]))) return false;
+                && followsChargeProperty(instance, orangeBlue[0], orangeBlue[1]) && followsChargeProperty(instance, orangeGreen[0], orangeGreen[1]))) return false;
         // else... return true because all properties came out to be true!
 
         return true;
@@ -375,16 +339,16 @@ public class CubeAlgorithm {
     /**
      * @description
      * This method helps identify G_PRIME.  Checks if this corner triple has a negative or positive property defined in the function.
-     * 
+     *
      * @preconditions
      * @param alphaC and @param betaC must ALREADY be checked to be apart of the same corner triple.  They're gammas must also already be checked to be yellow for one, and white for the ohter.
      * This allow us to say that the gamma of both pieces ON THE CUBE are ALWAYS different, to avoid further amibguity of checking this property again when it has been checked in isG_PRIME().
-     * 
+     *
      * @param instance the cube where this contested triple is on...
      * @param alphaC corner1 of triple (order doesn't matter)
      * @param betaC corner2 of triple (order doesn't matter)
      * @return Returns true if this triple follows their associated charge property.  False otherwise.
-     **/ 
+     **/
     private static boolean followsChargeProperty(Cube instance, Piece alphaC, Piece betaC){
 
         /**
@@ -435,173 +399,5 @@ public class CubeAlgorithm {
         // else... return true!
 
         return true;
-    }
-
-    // sorts in ascending order
-    private static void cube_mergeSort(LinkedList<Cube> toSort){
-
-        //System.out.println("\ntotal before");
-        //for (int i = 0; i < toSort.size(); i++){ System.out.println(Cube.stringHash(toSort.get(i))); }
-
-        if (toSort.size() < 2) return; // base case
-
-        int r = toSort.size();
-        int l = 0;
-        int m = (l + r) / 2;
-
-        LinkedList<Cube> left = new LinkedList<>();
-        // copy left-half of array to left
-        for (int i = 0; i < m; i++){ left.addLast(toSort.get(i)); }
-
-        //System.out.println("\nleft before");
-        //for (int i = 0; i < left.size(); i++){ System.out.println(Cube.stringHash(left.get(i))); }
-        cube_mergeSort(left);
-        //System.out.println("left after");
-        //for (int i = 0; i < left.size(); i++){ System.out.println(Cube.stringHash(left.get(i))); }
-
-        LinkedList<Cube> right = new LinkedList<>();
-        // copy right-half of array to right
-        for (int i = m; i < r; i++) { right.addLast(toSort.get(i)); }
-
-        //System.out.println("\nright before");
-        //for (int i = 0; i < right.size(); i++){ System.out.println(Cube.stringHash(right.get(i))); }
-        cube_mergeSort(right);
-        //System.out.println("right after");
-        //for (int i = 0; i < right.size(); i++){ System.out.println(Cube.stringHash(right.get(i))); }
-
-        
-        // MERGE SORTED HALVES
-        Cube l_cube = null;
-        Cube r_cube = null;
-        toSort.clear();
-        for (int i = l; i < r; i++){
-            if (left.isEmpty() && !right.isEmpty()){
-                toSort.addLast(right.getFirst());
-                right.removeFirst();
-                continue;
-            } else if (right.isEmpty() && !left.isEmpty()){
-                toSort.addLast(left.getFirst());
-                left.removeFirst();
-                continue;
-            } else if (left.isEmpty() && right.isEmpty()){
-                break;
-            }
-
-            l_cube = left.getFirst();
-            r_cube = right.getFirst();
-            
-            if (Cube.stringHash(l_cube).compareTo(Cube.stringHash(r_cube)) >= 0){
-                toSort.addLast(r_cube);
-                right.removeFirst();
-            } else {
-                toSort.addLast(l_cube);
-                left.removeFirst();
-            }
-        }
-
-        // done
-        //System.out.println("total after");
-        //for (int i = 0; i < toSort.size(); i++){ System.out.println(Cube.stringHash(toSort.get(i))); }
-        
-    }
-
-    private static int cube_binarySearch(LinkedList<Cube> q, int l, int r, Cube key){
-
-        int m = (l + r) / 2;
-        int size = r-l;
-
-        if (size < 2 && q.get(m).equals(key)) return m;
-        if (size < 2 && !q.get(m).equals(key)) return -1;
-
-        // do comparisons
-        Cube test = q.get(m);
-        int compareValue = Cube.stringHash(key).compareTo(Cube.stringHash(test));
-
-        if (compareValue > 0){ // if key is to the right...
-            return cube_binarySearch(q, m, r, key); // search right half
-        } else if (compareValue < 0){ // if key is to the left...
-            return cube_binarySearch(q, l, m, key); // search left half
-        } else {
-            return m;
-        }
-    }
-
-    /**
-     * cfop-based backup solution for solving the cube when solveToG_PRIME fails...
-     * im sure you know this already
-     * 1. cross
-     * 2. first two layers (F2L)
-     * 3. orientation of the last layer (OLL)
-     * 4. premutation of the last layer (PLL)
-     */
-
-    public boolean solveUsingCFOP(Cube instance) {
-        // step 1: solve the cross
-        if (!solveCross(instance)) {
-            return false;
-        }
-
-        // step 2: solve the first two layers (F2L)
-        if (!solveF2L(instance)) {
-            return false;
-        }
-
-        // step 3: orient the last layer (OLL)
-        if (!solveOLL(instance)) {
-            return false;
-        }
-
-        // step 4: Permute the last layer (PLL)
-        if (!solvePLL(instance)) {
-            return false;
-        }
-
-        // if all steps succeed, set the sequence and return true
-        this.sequence = instance.sequence;
-        return true;
-    }
-
-    /**
-     * solves the cross on the cube
-     * returns true if successful, false if it fails to make progress
-     */
-
-    private boolean solveCross(Cube instance) {
-        // Placeholder for the logic to solve the cross.
-        // Implement actual cross-solving logic here.
-        return instance.solveCross();
-    }
-
-    /**
-     * solves the first two layers (F2L) on the cube
-     * returns true if successful, false if it fails to make progress
-     */
-
-    private boolean solveF2L(Cube instance) {
-        // Placeholder for the logic to solve F2L.
-        // Implement actual F2L-solving logic here.
-        return instance.solveF2L();
-    }
-
-    /**
-     * solves the orientation of the last layer (OLL) on the cube
-     * returns true if successful, false if it fails to make progress
-     */
-
-    private boolean solveOLL(Cube instance) {
-        // Placeholder for the logic to solve OLL.
-        // Implement actual OLL-solving logic here.
-        return instance.solveOLL();
-    }
-
-    /**
-     * solves the permutation of the last layer (PLL) on the cube
-     * returns true if successful, false if it fails to make progress
-     */
-
-    private boolean solvePLL(Cube instance) {
-        // Placeholder for the logic to solve PLL.
-        // Implement actual PLL-solving logic here.
-        return instance.solvePLL();
     }
 }
