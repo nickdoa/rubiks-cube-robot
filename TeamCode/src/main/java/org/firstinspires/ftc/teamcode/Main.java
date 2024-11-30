@@ -32,6 +32,9 @@ public class Main{
          * full solves:
          * B2, Y2, B, O', R, B' - B O R' B B2 Y Y B2 (double y because that was the connection point) (8 move solve)
          * B2, Y, W', O, R2, O', Y', W, G', W, G2 - G2 W' G Y W' R2 W Y' B2 (9 move solve)
+         * 
+         * HS: GRGRRRGBGOGBGBGOBBYWYWWYYYYWYWWYWWYWRROOOOROOBGRBGBBOR - O2 Y' G2 B2 W B2 W G2 O2 Y2 R2 Y' O2 // this one is interesting bc this is a gprime scramble i made by intuitively putting
+         * the edges in, and dong OLL's to match the tops, and it got into GPRIME... it also took WAY TOO LONG to sort the arrays, so im consdiering making an insertion sort instead.
          */
 
         CubeAlgorithm alg = new CubeAlgorithm(null);
@@ -49,12 +52,31 @@ public class Main{
         System.out.println(alg.solveG_PRIME(gprime));
         System.out.println(alg.gSequence);*/
 
+        //Cube cube = Cube.fromStringHash("OGBWRWYBOOGYGBBWYRBRROWYWWOGOYWYRGRWGGBYOOBBRWYYBGRGGR");
+        //Cube.scramble(cube, 6, 20);
+        //System.out.println(cube);
+
+        //System.out.println(alg.kociemba_solve(cube));
+        //System.out.println(alg.finalSeq);
+
+        /*Cube cube = Cube.fromStringHash("GRGRRRGBGOGBGBGOBBYWYWWYYYYWYWWYWWYWRROOOOROOBGRBGBBOR");
+        System.out.println(cube);
+        System.out.println(CubeAlgorithm.isG_PRIME(cube));
+
+        alg.solveG_PRIME(cube);
+
+        System.out.println(alg.gSequence);
+        System.out.println(alg.finalSeq);*/
+
+        // cfop testings
         Cube cube = new Cube();
         Cube.scramble(cube, 6, 20);
+
         System.out.println(cube);
 
-        System.out.println(alg.kociemba_solve(cube));
-        System.out.println(alg.finalSeq);
+        alg.solveCross(cube);
+
+        System.out.println(cube);
 
     }
 }
