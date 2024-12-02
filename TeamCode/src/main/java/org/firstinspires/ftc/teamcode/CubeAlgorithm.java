@@ -4,10 +4,11 @@ import java.util.*;
  * This class will handle ALL algorithm logic for solving a cube, or possibly
  * returning a sequence of moves that reach a desired outcome of a certain
  * permutation.
- * 
+ *
  * The purpose of this class is to return a sequence of moves to do on
  * the specified Cube instantiated within it.
  */
+
 public class CubeAlgorithm {
     private Cube solved;
     public Cube scramble;
@@ -16,9 +17,8 @@ public class CubeAlgorithm {
     private int maxInstances = 1000000; // take 2726049 instances is max memory LOL
     public String gSequence;
     public String sequence;
-    public String finalSeq = null;
 
-    
+
 
     public CubeAlgorithm(Cube other){
         scramble = other;
@@ -193,7 +193,6 @@ public class CubeAlgorithm {
 
         // INCREASE EFFICIENCY WITH BINARY SEARCH AND MERGE SORT
         // BECAUSE RN THIS IS LEGIT JUST LINEAR SEARCH
-
         System.out.println("sorting... sizes:" + arr1.size() + " " + arr2.size());
 
         // sort arrays
@@ -214,7 +213,6 @@ public class CubeAlgorithm {
             }
         }
 
-        System.out.println("finished...");
         return null;
     }
 
@@ -234,7 +232,7 @@ public class CubeAlgorithm {
             turnFace = (int)(6 * Math.random());
             turnType = (int)(3 * Math.random());
 
-            
+
             face = Color.fromInt(turnFace);
 
             // modified for gprime set
@@ -279,31 +277,11 @@ public class CubeAlgorithm {
 
     }
 
-    public boolean kociemba_solve(Cube instance){
-
-        if (solveToG_PRIME(instance)){
-
-            if (scramble == null) return false;
-            sequence = scramble.sequence;
-            
-            if (solveG_PRIME(scramble)){
-                finalSeq = sequence + " " + gSequence;
-                return true;
-            } else {
-                return false; // ggs, prolly shouldnt happen unless there's an error or memory oh nos
-            }
-        } else {
-            // do cfop solve
-            return false;
-        }
-    }
-
     public boolean solveG_PRIME(Cube instance){
         if (!isG_PRIME(instance)){ return false; }
         if (instance.equals(solved)) return true;
 
         // SOLVING SETUP
-        instance.sequence = "";
         instance.prev = null; // IMPORTANT
 
         // QUEUES THAT REPRESENT POSSIBLE PERMUTAITON OF GPRIME AND SOLVED IN n MOVES
@@ -336,7 +314,7 @@ public class CubeAlgorithm {
             // COMPARE ne n permutation with solved cube queue
             common = null; // remove garbage value
             common = hasCommons(q, sq);
-            if (common != null){ 
+            if (common != null){
                 gSequence = common[0].sequence + " " + Cube.reverseSequence(common[1].sequence);
                 return true;
             }
@@ -381,7 +359,7 @@ public class CubeAlgorithm {
             copy = q.poll();
             if (addinstances(copy, q, false, true)) return true;
         }
-        
+
         scramble = clone;
         return false;
     }
@@ -393,9 +371,9 @@ public class CubeAlgorithm {
         // for each face
         for (Color face : Color.values()){
             // optimizations
-            if (face == copy.prev) continue; 
+            if (face == copy.prev) continue;
             if (Color.opp(face) == copy.prev && Color.isDom(copy.prev)) continue;
-            
+
             // last optimization i could think of
             // add if prev prev is this one && prev was opp
             if (copy.sequence.length() > 3 && Color.opp(face) == copy.prev){ // if the sequence has at least 1 move...
@@ -405,26 +383,13 @@ public class CubeAlgorithm {
                 if (prevprev == face) continue;
             }
 
+
             // DO MOVESET
-            clone = new Cube(copy);
-            Cube.turn(clone, face, true);
-            Cube.turn(clone, face, true);
-            if (clone.sequence.length() > 0) clone.sequence += " ";
-            clone.sequence += face.toString() + "2";
-            if (check_g_prime && isG_PRIME(clone)){
-                scramble = clone;
-                return true;
-            }
-            q.add(clone);
-
-            // check for max memory exception
-
-            
             if (!g_prime || (face == Color.WHITE || face == Color.YELLOW)){
 
                 clone = new Cube(copy);
                 Cube.turn(clone, face, true);
-                if (clone.sequence.length() > 0) clone.sequence += " "; // prevent extra space at end
+                if (clone.sequence.length() > 1) clone.sequence += " "; // prevent extra space at end
                 clone.sequence += face.toString();
                 if (check_g_prime && isG_PRIME(clone)){
                     scramble = clone;
@@ -436,7 +401,7 @@ public class CubeAlgorithm {
 
                 clone = new Cube(copy);
                 Cube.turn(clone, face, false);
-                if (clone.sequence.length() > 0) clone.sequence += " "; // prevent extra space at end
+                if (clone.sequence.length() > 1) clone.sequence += " "; // prevent extra space at end
                 clone.sequence += face.toString() + "\'";
                 if (check_g_prime && isG_PRIME(clone)){
                     scramble = clone;
@@ -447,7 +412,18 @@ public class CubeAlgorithm {
                 // check for max memory exception
             }
 
-            
+            clone = new Cube(copy);
+            Cube.turn(clone, face, true);
+            Cube.turn(clone, face, true);
+            if (clone.sequence.length() > 1) clone.sequence += " ";
+            clone.sequence += face.toString() + "2";
+            if (check_g_prime && isG_PRIME(clone)){
+                scramble = clone;
+                return true;
+            }
+            q.add(clone);
+
+            // check for max memory exception
         }
 
         return !check_g_prime;
@@ -459,7 +435,7 @@ public class CubeAlgorithm {
 
         // *check yellow-white gamma properties*
         Piece[] topAndBottom = {Piece.R0G2W0, Piece.G1W1, Piece.O2G0W2, Piece.R1W3, Piece.O1W5, Piece.R2B0W6, Piece.B1W7, Piece.O0B2W8,
-                                Piece.R6G8Y6, Piece.G7Y7, Piece.O8G6Y8, Piece.R7Y3, Piece.O7Y5, Piece.R8B6Y0, Piece.B7Y1, Piece.O6B8Y2};
+                Piece.R6G8Y6, Piece.G7Y7, Piece.O8G6Y8, Piece.R7Y3, Piece.O7Y5, Piece.R8B6Y0, Piece.B7Y1, Piece.O6B8Y2};
         // for each top-bottom side of the yellow and white faces...
         for (Piece p : topAndBottom){
             Color gamma = Cube.getGamma(instance, p);
@@ -528,7 +504,7 @@ public class CubeAlgorithm {
 
         // if any of the corner triples does not follow its charge property... return false
         if (!(followsChargeProperty(instance, redGreen[0], redGreen[1]) && followsChargeProperty(instance, redBlue[0], redBlue[1])
-            && followsChargeProperty(instance, orangeBlue[0], orangeBlue[1]) && followsChargeProperty(instance, orangeGreen[0], orangeGreen[1]))) return false;
+                && followsChargeProperty(instance, orangeBlue[0], orangeBlue[1]) && followsChargeProperty(instance, orangeGreen[0], orangeGreen[1]))) return false;
         // else... return true because all properties came out to be true!
 
         return true;
@@ -537,16 +513,16 @@ public class CubeAlgorithm {
     /**
      * @description
      * This method helps identify G_PRIME.  Checks if this corner triple has a negative or positive property defined in the function.
-     * 
+     *
      * @preconditions
      * @param alphaC and @param betaC must ALREADY be checked to be apart of the same corner triple.  They're gammas must also already be checked to be yellow for one, and white for the ohter.
      * This allow us to say that the gamma of both pieces ON THE CUBE are ALWAYS different, to avoid further amibguity of checking this property again when it has been checked in isG_PRIME().
-     * 
+     *
      * @param instance the cube where this contested triple is on...
      * @param alphaC corner1 of triple (order doesn't matter)
      * @param betaC corner2 of triple (order doesn't matter)
      * @return Returns true if this triple follows their associated charge property.  False otherwise.
-     **/ 
+     **/
     private static boolean followsChargeProperty(Cube instance, Piece alphaC, Piece betaC){
 
         /**
@@ -598,7 +574,6 @@ public class CubeAlgorithm {
 
         return true;
     }
-
     // sorts in ascending order
     private static void cube_mergeSort(LinkedList<Cube> toSort){
 
@@ -693,4 +668,5 @@ public class CubeAlgorithm {
 
         // use binary search to find the appropriate location to insert
     }
+
 }
