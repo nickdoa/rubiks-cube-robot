@@ -25,17 +25,191 @@ public class CubeAlgorithm {
         solved = new Cube();
     }
 
+    public boolean solveUsingCFOP(Cube instance) {
+        // step 1: solve the cross
+        if (!solveCross(instance)) {
+            return false;
+        }
+
+        // step 2: solve the first two layers (F2L)
+        if (!solveF2L(instance)) {
+            return false;
+        }
+
+        // step 3: orient the last layer (OLL)
+        if (!solveOLL(instance)) {
+            return false;
+        }
+
+        // step 4: Permute the last layer (PLL)
+        if (!solvePLL(instance)) {
+            return false;
+        }
+
+        // if all steps succeed, set the sequence and return true
+        this.sequence = instance.sequence;
+        return true;
+    }
+
+    /**
+     * solves the cross on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    public boolean solveCross(Cube instance) {
+        // Placeholder for the logic to solve the cross.
+        // Implement actual cross-solving logic here.
+
+        int crosses = 0;
+        while(true){
+
+            crosses = crossEdged(instance);
+            if (crosses >= 4) break;
+
+            // get solve to another part of the cross
+            String seq = solveToCross(instance, crosses+1); // add method of breadth searcth to find solve
+
+            System.out.println(seq);
+
+            // do solve
+            Cube.scramble(instance, seq); // crosses should automatically update after
+        }
+
+        // orientate appropriately to centers
+
+
+        return true;
+    }
+
+    // solve a certain amount of white piece edges
+    private String solveToCross(Cube instance, int cross){
+
+        if (crossEdged(instance) == cross) return null;
+
+        // SOLVING SETUP
+        instance.sequence = "";
+        instance.prev = null; // IMPORTANT
+
+        // QUEUES THAT REPRESENT POSSIBLE PERMUTAITON OF GPRIME AND SOLVED IN n MOVES
+        LinkedList<Cube> q = new LinkedList<>();
+        q.addLast(instance);
+
+        // SETUP VAIRABLES
+        int qItr = 0; // n for GPRIME
+
+        Cube copy = null;
+
+        // BREADTH-FIRST SEARCH ACROSS PERMUTATIONS
+        while (!q.isEmpty() && q.size() < maxInstances && qItr < 5){
+
+            // controls n permutations
+            // clear out the queue of n permutations...
+            while (!q.isEmpty() && q.size() < maxInstances && q.peek().sequence.split(" ").length <= qItr){
+                // get first in line to be iterated
+                copy = q.poll();
+
+                // check for cross edges
+                if (crossEdged(copy) == cross) return copy.sequence;
+
+                // add instances from this copy
+                addinstances(copy, q, false, false);
+            }
+            qItr++;
+
+        }
+
+        // according to my theory on solving the cross, this should NEVER return null...
+        System.out.println("Something went wrong.  Returned null.");
+        return null;
+    }
+
+    // returns the number of edges that are in the correct order for the cross, regardless of oritentation away from their center colors
+    private int crossEdged(Cube instance){
+        // num is between 1-4
+        // checks if that many white cross edges have been solved
+
+        // get alpha & beta
+        // white-cross in order from yellow on top
+        Color[] correctOrder = {Color.RED, Color.GREEN, Color.ORANGE, Color.BLUE};
+        // get the white face
+        Color[] order = {Cube.getAlpha(instance, Piece.R1W3), Cube.getBeta(instance, Piece.G1W1), Cube.getAlpha(instance, Piece.O1W5), Cube.getBeta(instance, Piece.B1W7)};
+        Color[] gamma = {Cube.getGamma(instance, Piece.R1W3), Cube.getGamma(instance, Piece.G1W1), Cube.getGamma(instance, Piece.O1W5), Cube.getGamma(instance, Piece.B1W7)};
+
+        // check for similarities
+        int crosses = 0;
+        int maxCrosses = 0;
+
+        // use a cycling method to find the max matches
+        for (int i = 0; i < 4; i++){
+
+            crosses = 0;
+            // check gamma if white
+            if (gamma[0] == Color.WHITE && order[0] == correctOrder[i%4]) crosses++;
+            if (gamma[1] == Color.WHITE && order[1] == correctOrder[(i+1)%4]) crosses++;
+            if (gamma[2] == Color.WHITE && order[2] == correctOrder[(i+2)%4]) crosses++;
+            if (gamma[3] == Color.WHITE && order[3] == correctOrder[(i+3)%4]) crosses++;
+
+            if (maxCrosses < crosses) maxCrosses = crosses;
+        }
+
+        return maxCrosses;
+    }
+
+    /**
+     * solves the first two layers (F2L) on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solveF2L(Cube instance) {
+        // Placeholder for the logic to solve F2L.
+        // Implement actual F2L-solving logic here.
+        return false;
+    }
+
+    /**
+     * solves the orientation of the last layer (OLL) on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solveOLL(Cube instance) {
+        // Placeholder for the logic to solve OLL.
+        // Implement actual OLL-solving logic here.
+        return false;
+    }
+
+    /**
+     * solves the permutation of the last layer (PLL) on the cube
+     * returns true if successful, false if it fails to make progress
+     */
+
+    private boolean solvePLL(Cube instance) {
+        // Placeholder for the logic to solve PLL.
+        // Implement actual PLL-solving logic here.
+        return false;
+    }
+
     // returns the common object between the arrays.. null if not found
     public static Cube[] hasCommons(LinkedList<Cube> arr1, LinkedList<Cube> arr2){
 
         // INCREASE EFFICIENCY WITH BINARY SEARCH AND MERGE SORT
         // BECAUSE RN THIS IS LEGIT JUST LINEAR SEARCH
+        System.out.println("sorting... sizes:" + arr1.size() + " " + arr2.size());
 
-        for (int i = 0; i < arr1.size(); i++){
-            for (int j = 0; j < arr2.size(); j++){
-                if (arr1.get(i).equals(arr2.get(j))){
-                    return new Cube[]{arr1.get(i), arr2.get(j)};
-                }
+        // sort arrays
+        cube_mergeSort(arr1);
+        cube_mergeSort(arr2);
+
+        System.out.println("searching...");
+
+        int commonIdx = -1;
+        for (int i = 0; i < arr2.size(); i++){
+
+            commonIdx = cube_binarySearch(arr1, 0, arr1.size(), arr2.get(i));
+            //System.out.println(commonIdx);
+
+            if (commonIdx >= 0){
+                System.out.println("finished...!");
+                return new Cube[]{arr1.get(commonIdx), arr2.get(i)};
             }
         }
 
@@ -400,4 +574,99 @@ public class CubeAlgorithm {
 
         return true;
     }
+    // sorts in ascending order
+    private static void cube_mergeSort(LinkedList<Cube> toSort){
+
+        //System.out.println("\ntotal before");
+        //for (int i = 0; i < toSort.size(); i++){ System.out.println(Cube.stringHash(toSort.get(i))); }
+
+        if (toSort.size() < 2) return; // base case
+
+        int r = toSort.size();
+        int l = 0;
+        int m = (l + r) / 2;
+
+        LinkedList<Cube> left = new LinkedList<>();
+        // copy left-half of array to left
+        for (int i = 0; i < m; i++){ left.addLast(toSort.get(i)); }
+
+        //System.out.println("\nleft before");
+        //for (int i = 0; i < left.size(); i++){ System.out.println(Cube.stringHash(left.get(i))); }
+        cube_mergeSort(left);
+        //System.out.println("left after");
+        //for (int i = 0; i < left.size(); i++){ System.out.println(Cube.stringHash(left.get(i))); }
+
+        LinkedList<Cube> right = new LinkedList<>();
+        // copy right-half of array to right
+        for (int i = m; i < r; i++) { right.addLast(toSort.get(i)); }
+
+        //System.out.println("\nright before");
+        //for (int i = 0; i < right.size(); i++){ System.out.println(Cube.stringHash(right.get(i))); }
+        cube_mergeSort(right);
+        //System.out.println("right after");
+        //for (int i = 0; i < right.size(); i++){ System.out.println(Cube.stringHash(right.get(i))); }
+
+        
+        // MERGE SORTED HALVES
+        Cube l_cube = null;
+        Cube r_cube = null;
+        toSort.clear();
+        for (int i = l; i < r; i++){
+            if (left.isEmpty() && !right.isEmpty()){
+                toSort.addLast(right.getFirst());
+                right.removeFirst();
+                continue;
+            } else if (right.isEmpty() && !left.isEmpty()){
+                toSort.addLast(left.getFirst());
+                left.removeFirst();
+                continue;
+            } else if (left.isEmpty() && right.isEmpty()){
+                break;
+            }
+
+            l_cube = left.getFirst();
+            r_cube = right.getFirst();
+            
+            if (Cube.stringHash(l_cube).compareTo(Cube.stringHash(r_cube)) >= 0){
+                toSort.addLast(r_cube);
+                right.removeFirst();
+            } else {
+                toSort.addLast(l_cube);
+                left.removeFirst();
+            }
+        }
+
+        // done
+        //System.out.println("total after");
+        //for (int i = 0; i < toSort.size(); i++){ System.out.println(Cube.stringHash(toSort.get(i))); }
+        
+    }
+
+    private static int cube_binarySearch(LinkedList<Cube> q, int l, int r, Cube key){
+
+        int m = (l + r) / 2;
+        int size = r-l;
+
+        if (size < 2 && q.get(m).equals(key)) return m;
+        if (size < 2 && !q.get(m).equals(key)) return -1;
+
+        // do comparisons
+        Cube test = q.get(m);
+        int compareValue = Cube.stringHash(key).compareTo(Cube.stringHash(test));
+
+        if (compareValue > 0){ // if key is to the right...
+            return cube_binarySearch(q, m, r, key); // search right half
+        } else if (compareValue < 0){ // if key is to the left...
+            return cube_binarySearch(q, l, m, key); // search left half
+        } else {
+            return m;
+        }
+    }
+
+    private static void cube_insertSorted(LinkedList<Cube> q, Cube insert){
+        // insert cube into already sorted linked list
+
+        // use binary search to find the appropriate location to insert
+    }
+
 }

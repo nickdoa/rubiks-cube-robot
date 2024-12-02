@@ -393,6 +393,27 @@ public class Cube {
         return msg;
     }
 
+    public static Cube fromStringHash(String hash){
+        Cube cube = new Cube();
+
+        // add is valid hash
+
+        // for now im just gonna straight up add it
+        Color[] face = null;
+        int i = 0;
+        for (Color c : Color.values()){
+            face = cube.matrix.get(c); // get matrix face
+
+            for (int j = i*9; j < 9*(i+1); j++){
+                face[j%9] = Color.fromString("" + hash.charAt(j)); // change that face
+            }
+
+            i++;
+        }
+
+        return cube;
+    }
+
     // for sorting & searching algs
     public static String stringHash(Cube other){
 
