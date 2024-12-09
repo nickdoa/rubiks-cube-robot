@@ -37,7 +37,7 @@ public class Main{
          * the edges in, and dong OLL's to match the tops, and it got into GPRIME... it also took WAY TOO LONG to sort the arrays, so im consdiering making an insertion sort instead.
          */
 
-        CubeAlgorithm alg = new CubeAlgorithm(null);
+        //CubeAlgorithm alg = new CubeAlgorithm(null);
 
         /*Cube cube = new Cube("R Y W G B2 W");
         System.out.println(cube);
@@ -68,6 +68,8 @@ public class Main{
         System.out.println(alg.gSequence);
         System.out.println(alg.finalSeq);*/
 
+        CFOPAlg alg = new CFOPAlg(null);
+
         // cfop testings
         Cube cube = new Cube();
         Cube.scramble(cube, 6, 20);
@@ -75,6 +77,10 @@ public class Main{
         System.out.println(cube);
 
         alg.solveCross(cube);
+
+        System.out.println(cube);
+
+        alg.solveF2L(cube);
 
         System.out.println(cube);
 
