@@ -6,6 +6,8 @@ public enum Color{
     ORANGE { @Override public String toString(){ return "O"; } },
     GREEN { @Override public String toString(){ return "G"; } };
 
+    // DO NOT ADD ANYMORE COLORS TO THIS... CubeAlgorithm.addInstances() will start having rare errors...
+
     public static Color fromInt(int idx){
         switch (idx){
             case 0: return RED;
@@ -43,6 +45,9 @@ public enum Color{
     }
 
     public static boolean isDom(Color other){
+
+        if (other == null) return false;
+
         switch(other){
             case RED: return true;
             case BLUE: return true;

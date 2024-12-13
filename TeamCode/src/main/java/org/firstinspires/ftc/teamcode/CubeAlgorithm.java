@@ -9,7 +9,7 @@ import java.util.*;
  * the specified Cube instantiated within it.
  */
 public class CubeAlgorithm {
-    protected Cube solved;
+    protected static Cube solved;
     public Cube scramble;
 
     protected int maxItrs = 6; // 6 makes me run out of memory...
@@ -23,6 +23,10 @@ public class CubeAlgorithm {
     public CubeAlgorithm(Cube other){
         scramble = other;
         solved = new Cube();
+    }
+
+    public static boolean isSolved(Cube instance){
+        return instance.equals(solved);
     }
 
     // returns the common object between the arrays.. null if not found
@@ -238,7 +242,7 @@ public class CubeAlgorithm {
             
             // last optimization i could think of
             // add if prev prev is this one && prev was opp
-            if (copy.sequence.length() > 3 && Color.opp(face) == copy.prev){ // if the sequence has at least 1 move...
+            if (copy.sequence.length() >= 3 && Color.opp(face) == copy.prev){ // if the sequence has at least 1 move...
                 String[] seq = copy.sequence.split(" ");
                 Color prevprev = Color.fromString(seq[seq.length-2].substring(0, 1));
 
@@ -246,17 +250,6 @@ public class CubeAlgorithm {
             }
 
             // DO MOVESET
-            clone = new Cube(copy);
-            Cube.turn(clone, face, true);
-            Cube.turn(clone, face, true);
-            if (clone.sequence.length() > 0) clone.sequence += " ";
-            clone.sequence += face.toString() + "2";
-            if (check_g_prime && isG_PRIME(clone)){
-                scramble = clone;
-                return true;
-            }
-            q.add(clone);
-
             // check for max memory exception
 
             
@@ -286,6 +279,18 @@ public class CubeAlgorithm {
 
                 // check for max memory exception
             }
+
+            // double turn
+            clone = new Cube(copy);
+            Cube.turn(clone, face, true);
+            Cube.turn(clone, face, true);
+            if (clone.sequence.length() > 0) clone.sequence += " ";
+            clone.sequence += face.toString() + "2";
+            if (check_g_prime && isG_PRIME(clone)){
+                scramble = clone;
+                return true;
+            }
+            q.add(clone);
 
             
         }
