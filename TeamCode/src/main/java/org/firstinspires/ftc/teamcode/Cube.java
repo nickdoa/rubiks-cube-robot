@@ -217,6 +217,7 @@ public class Cube {
 
     // overload
     public static boolean scramble(Cube other, String sequence){
+        if (sequence == null) return false;
         return scramble(other, sequence.split(" ", -1));
     }
     // scrambles this cube based on the string array sequence of moves.  returns true or false if it was successful.

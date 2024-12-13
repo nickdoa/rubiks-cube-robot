@@ -68,6 +68,16 @@ public class Main{
         System.out.println(alg.gSequence);
         System.out.println(alg.finalSeq);*/
 
+        /**
+         * cfop scrambles that were interesting
+         * 
+         * B', O', R2, O, R2, Y', W', G', B2 -> reduces to -> B' Y' W' G' B2   solve: B2 G W B B' Y B (literally the best what the sigma, except reducing for B & B')
+         * 
+         * 
+         * pre solved olls
+         * B2, W2, B', O2, R2, B2, G2
+         */
+
         CFOPAlg alg = new CFOPAlg(null);
 
         // cfop testings
@@ -81,6 +91,10 @@ public class Main{
         System.out.println(cube);
 
         alg.solveF2L(cube);
+
+        System.out.println(cube);
+
+        alg.solveOLL(cube);
 
         System.out.println(cube);
 
