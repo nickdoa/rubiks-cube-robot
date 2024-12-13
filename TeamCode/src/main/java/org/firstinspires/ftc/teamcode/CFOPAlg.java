@@ -140,7 +140,7 @@ public class CFOPAlg extends CubeAlgorithm {
      * 
      * 
      */
-    private enum Pair{
+    protected enum Pair{
         U11,
         U12,
         U21,
@@ -474,7 +474,7 @@ public class CFOPAlg extends CubeAlgorithm {
     }
 
     // a list of all the olls 1-57 with their respective algorithm solve
-    private enum OLL{
+    protected enum OLL{
         D1, // DOT
         D2,
         D3,
@@ -672,33 +672,134 @@ public class CFOPAlg extends CubeAlgorithm {
         Y,
         Z;
 
-        public String getAlgorithm(PLL type){
+        public static String getAlgorithm(PLL type){
 
             switch(type){
-                case Aa: return "";
-                case Ab: return "";
-                case E: return "";
-                case F: return "";
-                case Ga: return "";
-                case Gb: return "";
-                case Gc: return "";
-                case Gd: return "";
-                case H: return "";
-                case Ja: return "";
-                case Jb: return "";
-                case Na: return "";
-                case Nb: return "";
-                case Ra: return "";
-                case Rb: return "";
-                case T: return "";
-                case Ua: return "";
-                case Ub: return "";
-                case V: return "";
-                case Y: return "";
-                case Z: return "";
+                case Aa: return "L2 B2 L' F' L B2 L' F L'";
+                case Ab: return "L2 F2 L B L' F2 L B' L";
+                case E: return "L' B L F' L' B' L F L' B' L F' L' B L F";
+                case F: return "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R";
+                case Ga: return "R2 D B' U B' U' B D' R2 F' U F";
+                case Gb: return "F' U' F R2 D B' U B U' B D' R2";
+                case Gc: return "R2 D' F U' F U F' D R2 B U' B'";
+                case Gd: return "R U R' F2 D' L U' L' U L' D F2";
+                case H: return "L2 R2 D L2 R2 U2 L2 R2 D L2 R2";
+                case Ja: return "R' U L' U2 R U' R' U2 R L";
+                case Jb: return "R U' L U2 R' U R U2 R' L'";
+                case Na: return "L U' R U2 L' U R' L U' R U2 L' U R'";
+                case Nb: return "R' U L' U2 R U' L R' U L' U2 R U' L";
+                case Ra: return "L U2 L' U2 L F' L' U' L U L F L2";
+                case Rb: return "R' U2 R U2 R' F R U R' U' R' F' R2";
+                case T: return "R U R' U' R' F R2 U' R' U' R U R' F'";
+                case Ua: return "R U' R U R U R U' R' U' R2";
+                case Ub: return "R2 U R U R' U' R' U' R' U R'";
+                case V: return "R' U R' U' B' R' B2 U' B' U B' R B R";
+                case Y: return "F R' F R2 U' R' U' R U R' F' R U R' U' F'";
+                case Z: return "L R' F L2 R2 B L2 R2 F L R' D2 L2 R2";
             }
 
             return null;
+        }
+
+        public static String identifyPLL(Cube instance){
+
+            // to not waste time.... preconditions are that top layer is solved and pairs are 4 and cross done
+            if (!OLL.topLayerSolved(instance) || pairs(instance) < 4 || !crossCompleted(instance)) return null;
+
+            //System.out.println("skibidi");
+
+    
+            Cube copy = null; // keep copy of the cube
+            Color[] faces = {Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN};
+
+            // for each oll
+            for (PLL p : PLL.values()){
+
+                // for the 4 different ways the oll can be used...
+                for(Color face : faces){
+                    copy = new Cube(instance);
+
+                    // get oll seqeunce oriented
+                    String pllSeq = PLL.getAlgorithm(p);
+                    pllSeq = ColorType.convertSeq(pllSeq, face);
+
+                    // see if it solves the cube
+                    boolean ran = Cube.scramble(copy, pllSeq);
+
+                    // prints
+                    //System.out.println((p.ordinal()+1) + ": " + pllSeq);
+                    //System.out.println(copy);
+
+                    if (!ran)
+                        System.out.println(p.ordinal() + ": " + ran);
+
+                    // return the sequence!
+                    if (PLL.topLayerSolved(copy)){
+                        System.out.println("PLL: " + (p.ordinal()+1));
+                        return pllSeq;
+                    }
+
+                }
+            }    
+
+            return null;
+        }
+
+        // checks if the top-yellow ayer is solved
+        public static boolean topLayerSolved(Cube instance){
+
+            // preconditions: cross + f2l + oll
+
+            if (!OLL.topLayerSolved(instance)) return false;
+
+            Piece[] l = {Piece.R8B6Y0, Piece.R7Y3, Piece.R6G8Y6};
+            Piece[] b = {Piece.R8B6Y0, Piece.B7Y1, Piece.O6B8Y2};
+            Piece[] r = {Piece.O6B8Y2, Piece.O7Y5, Piece.O8G6Y8};
+            Piece[] f = {Piece.R6G8Y6, Piece.G7Y7, Piece.O8G6Y8};
+
+            Color[] colors = {null, null, null, null};
+
+            Piece[][] faces = {l, b, r, f};
+            for (int i = 0 ; i < faces.length; i++){
+
+                if (i % 2 == 0){// check alpha bc this face is left/right
+
+                    // for the pieces of the face
+                    for(Piece p : faces[i]){
+
+                        Color alpha = Cube.getAlpha(instance, p);
+                        // check if all the colors are the same
+                        if (alpha == colors[i] || colors[i] == null){ colors[i] = alpha; }
+                        else { return false; }
+                    }
+
+
+                } else {
+
+                    // for the pieces of the face
+                    for(Piece p : faces[i]){
+
+                        Color beta = Cube.getBeta(instance, p);
+                        // check if all the colors are the same
+                        if (beta == colors[i] || colors[i] == null){ colors[i] = beta; }
+                        else { return false; }
+                    }
+
+                }
+            }
+
+            //System.out.println(colors[0].toString() + " " + colors[1].toString() + " " + colors[2].toString() + " " + colors[3].toString() + " ");
+
+            // check if order of colors is correct
+            Color[] order = {Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN};
+
+            for (int i = 0; i < colors.length; i++){
+                if (colors[i] == null) return false; // just checking idk
+
+                if (colors[i%colors.length] == order[0] && colors[(i+1)%colors.length] == order[1] && colors[(i+2)%colors.length] == order[2] && colors[(i+3)%colors.length] == order[3]) return true;
+            }
+
+            return false;
         }
     }
 
@@ -1143,7 +1244,7 @@ public class CFOPAlg extends CubeAlgorithm {
         // do solve
         Cube.scramble(instance, seq);
 
-        return OLL.topLayerSolved(instance);
+        return OLL.topLayerSolved(instance); // if the seq was null, then an oll seq wasn't found to solve this case (which shouldnt be the case after cross+f2l)!)
     }
 
     /**
@@ -1159,8 +1260,37 @@ public class CFOPAlg extends CubeAlgorithm {
         // legit just try every single PLL until it works lmfao, identifying is too weird for this no cyap
         if (isSolved(instance)) return true;
 
+        // get oll solve
+        String seq = PLL.identifyPLL(instance);
+        if (seq != null)
+            System.out.print(seq);
+
+        // do solve
+        Cube.scramble(instance, seq);
+
+        // check js in case
+        if (!PLL.topLayerSolved(instance)) return false;
+        if (isSolved(instance)) {
+            System.out.println();
+            return true;
+        }
+
+        // add Y moveset to finish it off uwu
+        String[] moveSet = {"Y", "Y'", "Y2"};
+        for(String move : moveSet){
+            Cube copy = new Cube(instance);
+
+            Cube.turn(copy, move);
 
 
-        return true;
+            if (isSolved(copy)){
+                Cube.turn(instance, move);
+                if (seq != null) System.out.print(" ");
+                System.out.println(move);
+                return true;
+            }
+        }
+
+        return false; // if the seq was null, then a pll seq wasn't found to solve this case (which shouldnt be the case after cross+f2l+oll)!)
     }
 }

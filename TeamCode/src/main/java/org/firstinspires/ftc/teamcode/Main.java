@@ -98,5 +98,8 @@ public class Main{
 
         System.out.println(cube);
 
+        alg.solvePLL(cube);
+
+        System.out.println(cube);
     }
 }

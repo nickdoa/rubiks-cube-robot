@@ -10,7 +10,7 @@
 
 
 
-public abstract class ArraySwap{
+ public abstract class ArraySwap{
     // swaps these elements in the array
     public static void swap(Object[] array, int idx1, int idx2){
         swap(array, idx1, array, idx2);
@@ -18,6 +18,9 @@ public abstract class ArraySwap{
 
     // this overloaded method swaps across arrays
     public static void swap(Object[] array1, int idx1, Object[] array2, int idx2){
+
+        if (array1 == null || array2 == null) return;
+
         Object buffer = array1[idx1]; // buffer still needed bc/ it could be the same array
         array1[idx1] = array2[idx2];
         array2[idx2] = buffer;
